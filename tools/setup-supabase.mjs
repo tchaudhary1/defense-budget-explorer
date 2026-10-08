@@ -24,7 +24,7 @@ const SITE = (process.env.SITE_URL || 'https://tchaudhary1.github.io/defense-bud
 const sb = createClient(URL_, SERVICE, { auth: { persistSession: false } });
 const BUCKET = 'data';
 const FILES = ['data.b64.txt', 'taxonomy.json', 'taxonomy_v1.tsv.txt', 'taxonomy_v1_notes.txt', 'critique_v1.txt', 'taxonomy_v2.tsv.txt', 'taxonomy_v2_changelog.txt', 'classifier_brief.txt',
-  'taxonomy_assignments.csv', 'blind_coding_sheet.csv', 'agreement_top150.tsv.txt', ...Array.from({length: 9}, (_, i) => `narration/v5/step${i}.mp3`), 'dod_p1_procurement_lines.csv', 'dod_r1_rdte_lines.csv', 'dod_o1_om_lines.csv', 'dod_m1_milpers_lines.csv', 'dod_c1_projects.csv', 'green_book_fy2023_series.csv', 'omb_function_050_series.csv'];
+  'taxonomy_assignments.csv', 'blind_coding_sheet.csv', 'agreement_top150.tsv.txt', ...Array.from({length: 9}, (_, i) => `narration/v6/step${i}.mp3`), 'dod_p1_procurement_lines.csv', 'dod_r1_rdte_lines.csv', 'dod_o1_om_lines.csv', 'dod_m1_milpers_lines.csv', 'dod_c1_projects.csv', 'green_book_fy2023_series.csv', 'omb_function_050_series.csv'];
 const TYPES = { '.txt': 'text/plain', '.json': 'application/json', '.csv': 'text/csv', '.mp3': 'audio/mpeg' };
 
 async function mgmt(method, p, body) {
