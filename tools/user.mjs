@@ -12,7 +12,8 @@ const sb = createClient(new URL(need('DBE_SUPABASE_URL')).origin, need('DBE_SUPA
 const [cmd, name] = process.argv.slice(2); if (!cmd || !name) { console.log('usage: node tools/user.mjs create|disable|enable|rotate|delete <username>'); process.exit(1); }
 const email = name.includes('@') ? name.toLowerCase() : `${name.toLowerCase()}@users.dbe.invalid`;
 const pwFile = path.join(os.homedir(), `.dbe_pw_${name.toLowerCase().replace(/[^a-z0-9]/g, '_')}`);
-const newPassword = () => crypto.randomBytes(12).toString('base64url').replace(/[-_]/g, 'x').slice(0, 16);
+const ALPHABET = 'abcdefghjkmnpqrstuvwxyzABCDEFGHJKMNPQRSTUVWXYZ23456789';  // no 0/O, 1/l/I
+const newPassword = () => Array.from(crypto.randomBytes(16), b => ALPHABET[b % ALPHABET.length]).join('');
 const writePw = (pw) => { fs.writeFileSync(pwFile, pw + '\n', { mode: 0o600 }); try { fs.chmodSync(pwFile, 0o600); } catch {} console.log(`starting password written to ${pwFile} (read it there; it is not printed)`); };
 async function findUser() { let page = 1; for (;;) { const { data, error } = await sb.auth.admin.listUsers({ page, perPage: 200 }); if (error) throw error; const u = data.users.find(u => (u.email || '').toLowerCase() === email); if (u) return u; if (data.users.length < 200) return null; page++; } }
 const u = await findUser();
