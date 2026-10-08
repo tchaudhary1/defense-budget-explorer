@@ -318,6 +318,24 @@ body.story-on main{padding-bottom:230px}
 .help .labels .ret{color:var(--muted);text-decoration:line-through}
 .help kbd.key{border:1px solid var(--rule);border-bottom-width:2px;border-radius:4px;padding:0 6px;font-size:12px;background:var(--surface)}
 @media (max-width:700px){.help dl{grid-template-columns:1fr}.help .labels{columns:1}}
+
+#helpAdmin{border:1px solid var(--navy);border-radius:10px;padding:14px 16px;margin:0 0 18px;background:var(--surface)}
+#helpAdmin h2{margin-top:0}
+#helpAdmin .ctl{display:flex;flex-wrap:wrap;gap:8px 14px;align-items:center;font-size:13px;margin:6px 0 10px}
+#helpAdmin .ctl label{display:flex;gap:6px;align-items:center;text-transform:none;letter-spacing:0;font-size:13px}
+#helpAdmin .user{border-top:1px solid var(--rule);padding:12px 0 4px;margin-top:8px}
+#helpAdmin .user h3{margin:0 0 2px;font-size:16px}
+#helpAdmin .facts{display:flex;flex-wrap:wrap;gap:6px 18px;font-size:13px;color:var(--ink-2);margin:4px 0 10px}
+#helpAdmin .facts b{color:var(--ink)}
+#helpAdmin .cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px;align-items:start}
+#helpAdmin .cols h4{margin:0 0 4px;font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
+#helpAdmin .bar{display:inline-block;height:8px;background:var(--s1);border-radius:2px;vertical-align:middle;margin-right:6px}
+#helpAdmin .tl{font-size:12px;max-height:320px;overflow:auto;border:1px solid var(--rule);border-radius:6px}
+#helpAdmin .tl div{display:grid;grid-template-columns:118px 92px 1fr;gap:8px;padding:3px 8px;border-bottom:1px solid var(--rule)}
+#helpAdmin .tl div:last-child{border-bottom:0}
+#helpAdmin .tl .t{color:var(--muted);font-variant-numeric:tabular-nums}
+#helpAdmin .tl .k{color:var(--ink-2)}
+#helpAdmin .empty{color:var(--muted);font-size:13px}
 footer{border-top:1px solid var(--rule);color:var(--muted);font-size:12px;padding:16px 0 28px}
 kbd.code{font-family:ui-monospace,Consolas,monospace;font-size:12px;background:var(--surface-2);padding:1px 5px;border-radius:4px}
 .themebtn{border:1px solid rgba(255,255,255,.35);background:transparent;color:#fff;border-radius:6px;padding:4px 10px;cursor:pointer;font-size:12px;margin-left:10px}
@@ -531,6 +549,7 @@ kbd.code{font-family:ui-monospace,Consolas,monospace;font-size:12px;background:v
   <!-- ===================== HELP ===================== -->
   <section class="panel" id="panel-help">
     <div class="help">
+      <div id="helpAdmin" hidden></div>
       <div class="callout warn"><b>This is a demonstration, not a finished product.</b>The figures are the published ones, but the parsing, the joins across years and the taxonomy have not been through the vetting that would make them fit to cite. Treat every number as "what the source files say when read by a script", and every taxonomy label as "what a language model said after reading a title". The <a href="#help-caveats">caveats section</a> lists what is and is not reliable.</div>
       <h2 id="help-start" style="margin-top:14px">What this is</h2>
       <p>The Defense Budget Explorer puts twenty-five years of the Department of Defense's own budget justification tables in one place and lets you cut them by year, by appropriation title, by organization, by budget activity and by individual line. It joins them to three outside records: the Comptroller's Green Book (long history back to 1948), the Office of Management and Budget's Historical Tables (national defense as a share of the economy and of federal spending) and USAspending.gov (what was actually obligated and paid). On top of that sits a small <a href="#help-taxonomy">taxonomy demonstration</a>: every research line tagged on five dimensions by an automated classifier, so the same money can be regrouped by the problem it solves, where it operates, what it produces, which technology it leans on and where it sits in a program's life.</p>
@@ -544,6 +563,7 @@ kbd.code{font-family:ui-monospace,Consolas,monospace;font-size:12px;background:v
         <li><b>▶ Play the story</b> (gold button, top right) starts a guided eight-step walk through the data with optional narration. It never starts by itself. See <a href="#help-story">The guided story</a>.</li>
         <li><b>Theme</b> switches between the light and dark design. The page opens light; your choice is remembered on this device.</li>
         <li><b>Account</b>: when the site is sign-in protected, your username appears at the top right with <b>Change password</b> and <b>Sign out</b>. <b>Forgot password?</b> on the sign-in screen emails a reset link if your account is an email address; username-only accounts have no mailbox, so ask the person who gave you the account.</li>
+        <li><b>Usage is logged.</b> While you are signed in, the page records which tabs you open and for how long, what you click, your searches and the story steps you reach, so the site owner can see how the demonstration is used. Nothing is recorded about anything outside this page.</li>
         <li><b>Hover</b> over any bar, line, dot or shaded cell for the exact figure. <b>Click</b> a bar or a table row where the cursor becomes a hand to drill into it. Column headers in tables sort when clicked.</li>
       </ul>
 
@@ -798,7 +818,7 @@ async function fetchDataFile(name){
   if (!HOSTED) { const r = await fetch(name); if (!r.ok) throw new Error(name + ' ' + r.status); return r; }
   const sb = await sbClient(); const { data, error } = await sb.storage.from(CFG.BUCKET || 'data').download(name); if (error) throw new Error(name + ': ' + error.message); return new Response(data);
 }
-if (HOSTED){ await requireSession();
+if (HOSTED){ const sb0 = await requireSession(); { const { data: { session } } = await sb0.auth.getSession(); if (session){ ADMIN = (session.user.email || '').toLowerCase() === (CFG.ADMIN_EMAIL || 'tchaudhary@gatech.edu').toLowerCase(); logStart(sb0, session); } }
   $('#acctOut').addEventListener('click', async () => { const sb = await sbClient(); await sb.auth.signOut(); location.reload(); });
   $('#acctPw').addEventListener('click', async () => { const sb = await sbClient(); showGate('setpw'); await waitForGate(sb); hideGate(); toast('Password updated.'); });
   // downloads on the Data tab become short-lived signed links
@@ -866,8 +886,30 @@ const deltaHtml = (v, fmt) => v == null ? '–' : `<span class="delta ${v >= 0 ?
 
 // ---------- tabs ----------
 const panels = {}; let activeTab = 'overview';
+
+// ---------- usage log (hosted mode only; rows are written by the signed-in visitor and readable only by the admin) ----------
+const LOG = { on: false, q: [], sid: Math.random().toString(36).slice(2, 10), tab: null, tabAt: 0, email: '', token: '', timer: null };
+let ADMIN = false;
+function logEv(kind, detail){ if (!LOG.on) return; LOG.q.push({ at: new Date().toISOString(), email: LOG.email, sid: LOG.sid, kind, detail: detail || null }); if (LOG.q.length >= 25) logFlush(); else if (!LOG.timer) LOG.timer = setTimeout(logFlush, 8000); }
+function logFlush(){ clearTimeout(LOG.timer); LOG.timer = null; if (!LOG.q.length || !LOG.token) return; const rows = LOG.q.splice(0);
+  try { fetch(CFG.SUPABASE_URL + '/rest/v1/dbe_events', { method: 'POST', keepalive: true, headers: { apikey: CFG.SUPABASE_ANON_KEY, Authorization: 'Bearer ' + LOG.token, 'Content-Type': 'application/json', Prefer: 'return=minimal' }, body: JSON.stringify(rows) }).catch(() => {}); } catch(e){} }
+function logTabLeave(){ if (LOG.tab && LOG.tabAt){ const ms = Date.now() - LOG.tabAt; if (ms > 500) logEv('tab', { tab: LOG.tab, ms }); } LOG.tabAt = Date.now(); }
+function logTabEnter(t){ if (!LOG.on) return; if (LOG.tab !== t) logTabLeave(); LOG.tab = t; LOG.tabAt = Date.now(); }
+function logStart(sb, session){ LOG.on = true; LOG.email = (session.user.email || '').toLowerCase(); LOG.token = session.access_token;
+  sb.auth.onAuthStateChange((_, s2) => { if (s2 && s2.access_token) LOG.token = s2.access_token; });
+  logEv('visit', { ua: navigator.userAgent.slice(0, 140), w: innerWidth, h: innerHeight, hash: location.hash || '' });
+  logTabEnter(activeTab);
+  document.addEventListener('visibilitychange', () => { if (document.hidden){ logTabLeave(); logEv('leave', { why: 'hidden' }); logFlush(); } else { LOG.tabAt = Date.now(); } });
+  addEventListener('pagehide', () => { logTabLeave(); logEv('leave', { why: 'closed' }); logFlush(); });
+  document.addEventListener('click', e => { const el = e.target.closest('button, a.chip, tr.click, th, canvas, #txXtab td, .toc a'); if (!el || el.closest('#gate') || el.closest('#helpAdmin')) return;
+    const kind = el.tagName === 'CANVAS' ? 'chart' : el.getAttribute('role') === 'tab' ? 'tab' : el.tagName === 'TR' ? 'row' : el.tagName === 'TH' ? 'sort' : el.tagName === 'TD' ? 'cell' : el.tagName === 'A' ? 'link' : 'button';
+    const what = kind === 'chart' ? el.id : (el.textContent || '').trim().replace(/\s+/g, ' ').slice(0, 90);
+    logEv('click', { tab: activeTab, kind, what, id: el.id || undefined }); }, true);
+  const sq = $('#sQ'); if (sq) sq.addEventListener('change', e => logEv('search', { q: e.target.value.trim().slice(0, 90) }));
+}
+
 $('#tabs').addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; showTab(b.dataset.tab); });
-function showTab(t){ activeTab = t; $$('#tabs button').forEach(b => b.setAttribute('aria-selected', b.dataset.tab === t ? 'true':'false')); $$('.panel').forEach(p => p.classList.toggle('active', p.id === 'panel-' + t)); try { location.hash = t; } catch(e){} (RENDER[t] || (()=>{}))(); }
+function showTab(t){ activeTab = t; logTabEnter(t); $$('#tabs button').forEach(b => b.setAttribute('aria-selected', b.dataset.tab === t ? 'true':'false')); $$('.panel').forEach(p => p.classList.toggle('active', p.id === 'panel-' + t)); try { location.hash = t; } catch(e){} (RENDER[t] || (()=>{}))(); }
 const RENDER = {};
 function rerenderAll(){ (RENDER[activeTab] || (()=>{}))(); }
 
@@ -1189,7 +1231,53 @@ RENDER.data = renderData;
 async function renderHelp(){ const box = $('#helpTaxLabels'); if (!box || box.dataset.done) return; const T = await loadTaxonomy(); if (!T){ box.innerHTML = '<div class="sub">The taxonomy file is not attached to this page.</div>'; return; }
   const parts = []; for (const d of T.dims){ parts.push(`<div style="margin-top:8px"><b>${esc(d.code)}</b> · <span style="font-weight:600">${esc(d.label)}</span></div>`); for (const it of d.items){ const ret = it.retired || /retired/i.test(it.label || ''); parts.push(`<div class="${ret ? 'ret' : ''}"><b>${esc(it.code)}</b> ${esc((it.label || '').replace(/\s*\(retired\)\s*$/i, ''))}${ret ? ' (retired, mapped forward)' : ''}</div>`); } if (d.code !== 'ORG' && d.code !== 'BA') parts.push('<div><b>X</b> Unclassifiable (failed the gate)</div>'); }
   box.innerHTML = parts.join(''); box.dataset.done = '1'; }
-RENDER.help = renderHelp;
+
+// ===================== ADMIN: visitor activity (Help tab, admin account only) =====================
+const TAB_NAME = {}; $$('#tabs button').forEach(b => TAB_NAME[b.dataset.tab] = b.textContent.trim());
+const fmtDur = ms => { if (ms == null) return '–'; const m = Math.round(ms / 60000); if (m < 1) return Math.round(ms / 1000) + ' s'; if (m < 90) return m + ' min'; return (m / 60).toFixed(1) + ' h'; };
+const fmtWhen = iso => { const d = new Date(iso); return d.toLocaleString(undefined, { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }); };
+const shortUser = e => { e = (e || '').toLowerCase(); const dom = '@' + (CFG && CFG.USER_DOMAIN || 'users.dbe.invalid'); return e.endsWith(dom) ? e.slice(0, -dom.length) : e; };
+const adm = { days: 30, me: false, loading: false };
+async function renderAdmin(){ const box = $('#helpAdmin'); if (!box) return; if (!ADMIN){ box.hidden = true; return; } box.hidden = false;
+  if (adm.loading) return; adm.loading = true;
+  box.innerHTML = `<h2>Visitor activity</h2><div class="sub">Visible to the admin account only. Sign-in times come from the account record; everything else from the usage log written while visitors use the page.</div>
+    <div class="ctl"><label>Period <select id="admDays"><option value="7">last 7 days</option><option value="30" selected>last 30 days</option><option value="3650">everything</option></select></label><label><input type="checkbox" id="admMe"> include my own activity</label><button class="btn" id="admRefresh">Refresh</button><span class="empty" id="admStatus">Loading…</span></div><div id="admBody"></div>`;
+  $('#admDays').value = String(adm.days); $('#admMe').checked = adm.me;
+  $('#admDays').addEventListener('change', e => { adm.days = +e.target.value; adm.loading = false; renderAdmin(); });
+  $('#admMe').addEventListener('change', e => { adm.me = e.target.checked; adm.loading = false; renderAdmin(); });
+  $('#admRefresh').addEventListener('click', () => { adm.loading = false; renderAdmin(); });
+  let users = [], events = [], err = null;
+  try { const sb = await sbClient(); const since = new Date(Date.now() - adm.days * 86400000).toISOString();
+    const [u, ev] = await Promise.all([sb.rpc('dbe_admin_users'), sb.from('dbe_events').select('at,email,sid,kind,detail').gte('at', since).order('at', { ascending: false }).limit(8000)]);
+    if (u.error) err = u.error; else users = u.data || []; if (ev.error) err = ev.error; else events = ev.data || []; }
+  catch (e) { err = e; }
+  adm.loading = false; const body = $('#admBody'); const status = $('#admStatus');
+  if (err){ const m = String(err.message || err); status.textContent = ''; body.innerHTML = `<div class="callout warn"><b>The activity log is not set up yet.</b>${esc(m)}<br>Run <span class="code">tools/admin-activity.sql</span> from the site repository in the Supabase SQL editor once, then press Refresh.</div>`; return; }
+  renderAdminWith(users, events); }
+function renderAdminWith(users, events){ const body = $('#admBody'); const status = $('#admStatus'); const me = (CFG && CFG.ADMIN_EMAIL || 'tchaudhary@gatech.edu').toLowerCase();
+  const byUser = new Map(); for (const u of users){ const e = (u.email || '').toLowerCase(); if (!adm.me && e === me) continue; byUser.set(e, { email: e, created: u.created_at, lastSignIn: u.last_sign_in_at, ev: [] }); }
+  for (const r of events){ const e = (r.email || '').toLowerCase(); if (!adm.me && e === me) continue; if (!byUser.has(e)) byUser.set(e, { email: e, ev: [] }); byUser.get(e).ev.push(r); }
+  status.textContent = `${events.length.toLocaleString()} events · ${byUser.size} account${byUser.size === 1 ? '' : 's'}`;
+  if (!byUser.size){ body.innerHTML = '<div class="empty">No accounts to show.</div>'; return; }
+  const parts = [];
+  for (const u of Array.from(byUser.values()).sort((a, b) => (b.ev[0]?.at || b.lastSignIn || '') > (a.ev[0]?.at || a.lastSignIn || '') ? 1 : -1)){
+    const ev = u.ev.slice().sort((a, b) => a.at < b.at ? -1 : 1); // oldest first
+    const visits = ev.filter(r => r.kind === 'visit'); const tabMs = new Map(); let total = 0; for (const r of ev) if (r.kind === 'tab' && r.detail){ const t = r.detail.tab || '?'; tabMs.set(t, (tabMs.get(t) || 0) + (r.detail.ms || 0)); total += r.detail.ms || 0; }
+    const clicks = ev.filter(r => r.kind === 'click'); const searches = ev.filter(r => r.kind === 'search' && r.detail && r.detail.q); const steps = ev.filter(r => r.kind === 'story' && r.detail && r.detail.step >= 0);
+    const furthest = steps.length ? Math.max(...steps.map(r => r.detail.step)) : null; const days = new Set(ev.map(r => r.at.slice(0, 10)));
+    const sessions = new Map(); for (const r of ev){ const k = r.sid || r.at.slice(0, 13); const sx = sessions.get(k) || { start: r.at, end: r.at, tabs: new Set(), clicks: 0, steps: new Set(), ms: 0 }; sx.end = r.at; if (r.kind === 'click') sx.clicks++; if (r.kind === 'tab' && r.detail){ sx.tabs.add(r.detail.tab); sx.ms += r.detail.ms || 0; } if (r.kind === 'story' && r.detail && r.detail.step >= 0) sx.steps.add(r.detail.step); sessions.set(k, sx); }
+    const facts = [`Account created <b>${u.created ? fmtWhen(u.created) : '–'}</b>`, `Last sign-in <b>${u.lastSignIn ? fmtWhen(u.lastSignIn) : 'never'}</b>`, `Visits in period <b>${visits.length}</b> on <b>${days.size}</b> day${days.size === 1 ? '' : 's'}`, `Time on page <b>${fmtDur(total)}</b>`, `Clicks <b>${clicks.length}</b>`, `Searches <b>${searches.length}</b>`, `Story: <b>${furthest == null ? 'not started' : furthest === 0 ? 'opened' : 'reached step ' + furthest + ' of 8'}</b>`];
+    const tabRows = Array.from(tabMs.entries()).sort((a, b) => b[1] - a[1]); const maxMs = tabRows.length ? tabRows[0][1] : 1;
+    const tabHtml = tabRows.length ? `<table class="data"><tbody>${tabRows.map(([t, ms]) => `<tr><td class="name">${esc(TAB_NAME[t] || t)}</td><td class="num" style="white-space:nowrap"><span class="bar" style="width:${Math.max(4, Math.round(ms / maxMs * 90))}px"></span>${fmtDur(ms)}</td></tr>`).join('')}</tbody></table>` : '<div class="empty">No tab time recorded yet.</div>';
+    const sessHtml = sessions.size ? `<table class="data"><thead><tr><th>Started</th><th class="num">Length</th><th>Tabs</th><th class="num">Clicks</th><th>Story</th></tr></thead><tbody>${Array.from(sessions.values()).sort((a, b) => a.start < b.start ? 1 : -1).slice(0, 30).map(sx => `<tr><td style="white-space:nowrap">${fmtWhen(sx.start)}</td><td class="num">${fmtDur(Math.max(sx.ms, new Date(sx.end) - new Date(sx.start)))}</td><td style="font-size:12px">${esc(Array.from(sx.tabs).map(t => TAB_NAME[t] || t).join(', '))}</td><td class="num">${sx.clicks}</td><td style="font-size:12px">${sx.steps.size ? 'steps ' + Array.from(sx.steps).sort((a, b) => a - b).join(', ') : ''}</td></tr>`).join('')}</tbody></table>` : '<div class="empty">No sessions in this period.</div>';
+    const recent = ev.filter(r => r.kind !== 'tab' && r.kind !== 'leave').slice(-60).reverse();
+    const line = r => { const d = r.detail || {}; switch (r.kind){ case 'visit': return `opened the page (${d.w}×${d.h})`; case 'click': return `${d.kind}: ${esc(d.what || d.id || '')}`; case 'search': return `searched "${esc(d.q)}"`; case 'story': return d.step < 0 ? `left the story at step ${d.from}` : `story step ${d.step}${d.title ? ' · ' + esc(d.title) : ''}`; default: return esc(r.kind); } };
+    const tlHtml = recent.length ? `<div class="tl">${recent.map(r => `<div><span class="t">${fmtWhen(r.at)}</span><span class="k">${esc(TAB_NAME[(r.detail || {}).tab] || '')}</span><span>${line(r)}</span></div>`).join('')}</div>` : '<div class="empty">No clicks recorded yet.</div>';
+    parts.push(`<div class="user"><h3>${esc(shortUser(u.email))}</h3><div class="facts">${facts.map(f => `<span>${f}</span>`).join('')}</div>
+      <div class="cols"><div><h4>Time by tab</h4>${tabHtml}</div><div><h4>Sessions</h4>${sessHtml}</div><div><h4>Recent activity</h4>${tlHtml}${searches.length ? `<div class="sub" style="margin-top:6px">Searches: ${searches.slice(-12).map(r => '"' + esc(r.detail.q) + '"').join(', ')}</div>` : ''}</div></div></div>`); }
+  body.innerHTML = parts.join(''); }
+
+RENDER.help = async () => { renderAdmin(); await renderHelp(); };
 
 
 // ===================== GUIDED STORY =====================
@@ -1270,7 +1358,7 @@ function ptrSchedule(i){ ptrClear(); const list = POINTERS[i] || []; if (!list.l
   if (NAR.on){ PTR.pending = list.slice(); }  // fired from the audio clock in narPlay's timeupdate
   else { list.forEach(p => PTR.timers.push(setTimeout(() => ptrShow(p), 900 + p.t * 1000))); PTR.timers.push(setTimeout(ptrHide, 900 + (list[list.length-1].t + 12) * 1000)); } }
 function ptrTick(time){ while (PTR.pending.length && PTR.pending[0].t <= time){ ptrShow(PTR.pending.shift()); } }
-window.__dbe = { ptrShow, ptrHide, POINTERS, storyGo: (i) => storyGo(i), ptrLive: () => PTR.live && PTR.live.p.text };
+window.__dbe = { adminMock: (users, events) => { ADMIN = true; const b = $('#helpAdmin'); b.hidden = false; b.innerHTML = '<h2>Visitor activity</h2><div class="ctl"><span class="empty" id="admStatus"></span></div><div id="admBody"></div>'; renderAdminWith(users, events); }, ptrShow, ptrHide, POINTERS, storyGo: (i) => storyGo(i), ptrLive: () => PTR.live && PTR.live.p.text };
 // ---------- end pointers ----------
 
 
@@ -1342,7 +1430,7 @@ narUi();
 const bar = $('#storybar');
 function storyGo(i){
   if (i < 0 || i >= STORY.length) return storyExit();
-  story.i = i; const st = STORY[i]; document.body.classList.add('story-on'); bar.hidden = false;
+  story.i = i; const st = STORY[i]; document.body.classList.add('story-on'); bar.hidden = false; logEv('story', { step: i, title: st.title });
   st.setup(); showTab(st.tab); try { history.replaceState(null, '', '#story' + i); } catch(e){}
   $('#storyStep').textContent = (i === 0 ? 'The story' : `Step ${i} of ${STORY.length-1}`) + ' · ' + st.title; $('#storyCap').innerHTML = st.cap;
   setTimeout(() => ptrSchedule(i), st.tab === 'taxonomy' ? 1100 : 500);
@@ -1363,7 +1451,7 @@ function storyGo(i){
   $('#storyPrev').disabled = i === 0; $('#storyNext').textContent = i === STORY.length - 1 ? 'Finish' : (i === 0 ? 'Begin ›' : 'Next ›');
   setTimeout(() => { const el = $(st.target); const card = el && el.closest('.card, .grid, .filters'); if (card){ card.scrollIntoView({behavior:'smooth', block:'center'}); card.classList.remove('pulse'); void card.offsetWidth; card.classList.add('pulse'); } }, st.tab === 'taxonomy' ? 900 : 350);
 }
-function storyExit(){ nextFlash(false); narStop(); ptrClear(); story.i = -1; bar.hidden = true; document.body.classList.remove('story-on'); $$('.pulse').forEach(e => e.classList.remove('pulse')); try { history.replaceState(null, '', '#' + activeTab); } catch(e){} }
+function storyExit(){ if (story.i >= 0) logEv('story', { step: -1, from: story.i }); nextFlash(false); narStop(); ptrClear(); story.i = -1; bar.hidden = true; document.body.classList.remove('story-on'); $$('.pulse').forEach(e => e.classList.remove('pulse')); try { history.replaceState(null, '', '#' + activeTab); } catch(e){} }
 $('#storyBtn').addEventListener('click', () => storyGo(0));
 $('#storyNext').addEventListener('click', () => storyGo(story.i + 1));
 $('#storyPrev').addEventListener('click', () => storyGo(story.i - 1));

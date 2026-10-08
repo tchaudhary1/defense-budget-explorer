@@ -23,3 +23,7 @@ The pipeline (download, parse, normalize, taxonomy assembly) lives in the resear
 - National Defense Budget Estimates for FY 2023 (Green Book), Excel archive
 - OMB Historical Tables, FY2027 edition: https://www.whitehouse.gov/omb/information-resources/budget/historical-tables/
 - USAspending API, agency 097 budgetary resources: https://api.usaspending.gov/
+
+## Visitor activity (admin)
+
+Signed-in visitors' tab time, clicks, searches and story steps are written to the Supabase table `dbe_events`. Create it once by running `tools/admin-activity.sql` in the project's SQL editor. The account named in `config.js` `ADMIN_EMAIL` sees a *Visitor activity* panel at the top of the Help tab; the table's row-level policy and the `dbe_admin_users()` function enforce the same restriction server side.
