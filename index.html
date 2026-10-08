@@ -1,0 +1,861 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Defense Budget Explorer</title>
+<meta name="description" content="Interactive demo: 25 years of DoD budget exhibits (P-1, R-1, O-1, M-1, C-1) plus Green Book, OMB and USAspending series, cut by year, vintage, organization, account and line item.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Roboto+Slab:wght@500;700&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+<script src="config.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pako/2.1.0/pako.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+:root{
+  --navy:#003057; --gold:#B3A369; --gold-deep:#857437; --buzz:#EAAA00; --gray:#54585A; --pimile:#D6DBD4; --tint:#F3EFE2;
+  --bg:#F7F6F2; --surface:#FFFFFF; --surface-2:#F3EFE2; --ink:#1C2430; --ink-2:#4A5361; --muted:#6B7280; --rule:#E4E2DA; --hover:#EEF2F7;
+  --head-bg:#003057; --head-ink:#FFFFFF; --accent:#B3A369; --link:#1D5BAA;
+  --s1:#2a78d6; --s2:#eb6834; --s3:#1baf7a; --s4:#eda100; --s5:#e87ba4; --s6:#008300; --s7:#4a3aa7; --s8:#e34948; --sOther:#9AA0A6;
+  --grid:#ECEAE3; --tick:#6B7280;
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+  --bg:#121518; --surface:#1B1F24; --surface-2:#232830; --ink:#F2F2EE; --ink-2:#C9CCD1; --muted:#9BA1A8; --rule:#2E343C; --hover:#262C35;
+  --head-bg:#0B2744; --head-ink:#FFFFFF; --accent:#C9B77A; --link:#7FB2F0; --tint:#232830;
+  --s1:#3987e5; --s2:#d95926; --s3:#199e70; --s4:#c98500; --s5:#d55181; --s6:#2e9e2e; --s7:#9085e9; --s8:#e66767; --sOther:#6F757C;
+  --grid:#2A3038; --tick:#9BA1A8;
+}}
+:root[data-theme="dark"]{
+  --bg:#121518; --surface:#1B1F24; --surface-2:#232830; --ink:#F2F2EE; --ink-2:#C9CCD1; --muted:#9BA1A8; --rule:#2E343C; --hover:#262C35;
+  --head-bg:#0B2744; --head-ink:#FFFFFF; --accent:#C9B77A; --link:#7FB2F0; --tint:#232830;
+  --s1:#3987e5; --s2:#d95926; --s3:#199e70; --s4:#c98500; --s5:#d55181; --s6:#2e9e2e; --s7:#9085e9; --s8:#e66767; --sOther:#6F757C;
+  --grid:#2A3038; --tick:#9BA1A8;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{background:var(--bg);color:var(--ink);font-family:Roboto,system-ui,-apple-system,"Segoe UI",sans-serif;font-size:14px;line-height:1.45}
+h1,h2,h3{font-family:"Roboto Slab",Georgia,serif;margin:0}
+a{color:var(--link)}
+button,select,input{font:inherit;color:inherit}
+.wrap{max-width:1360px;margin:0 auto;padding:0 16px}
+header{background:var(--head-bg);color:var(--head-ink)}
+header .wrap{display:flex;flex-wrap:wrap;align-items:flex-end;gap:12px 24px;padding:18px 16px 0}
+header .brand{flex:1 1 420px}
+header .kicker{font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--buzz);font-weight:700}
+header h1{font-size:28px;font-weight:700;margin:4px 0 2px}
+header .dek{color:#D6DBD4;font-size:14px;max-width:760px}
+header .meta{font-size:12px;color:#D6DBD4;text-align:right;flex:0 0 auto;padding-bottom:6px}
+header .meta b{color:#fff}
+nav.tabs{display:flex;gap:2px;flex-wrap:wrap;width:100%;margin-top:14px}
+nav.tabs button{background:transparent;border:0;border-bottom:3px solid transparent;color:#D6DBD4;padding:10px 14px;cursor:pointer;font-weight:500;font-size:14px}
+nav.tabs button:hover{color:#fff;background:rgba(255,255,255,.06)}
+nav.tabs button[aria-selected="true"]{color:#fff;border-bottom-color:var(--buzz)}
+main{padding:18px 0 48px}
+.panel{display:none}.panel.active{display:block}
+.filters{display:flex;flex-wrap:wrap;gap:10px 16px;align-items:flex-end;background:var(--surface);border:1px solid var(--rule);border-radius:10px;padding:12px 14px;margin-bottom:14px}
+.filters label{display:flex;flex-direction:column;gap:4px;font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:700}
+.filters select,.filters input[type=text],.filters input[type=search]{border:1px solid var(--rule);background:var(--surface);border-radius:6px;padding:6px 8px;min-width:150px;font-size:13px}
+.filters input[type=range]{width:220px}
+.seg{display:inline-flex;border:1px solid var(--rule);border-radius:6px;overflow:hidden}
+.seg button{border:0;background:var(--surface);padding:6px 10px;cursor:pointer;font-size:13px;color:var(--ink-2)}
+.seg button[aria-pressed="true"]{background:var(--navy);color:#fff}
+.grid{display:grid;gap:14px}
+.grid.two{grid-template-columns:1fr 1fr}
+.grid.three{grid-template-columns:repeat(3,1fr)}
+.grid.tiles{grid-template-columns:repeat(auto-fit,minmax(170px,1fr))}
+@media (max-width:900px){.grid.two,.grid.three{grid-template-columns:1fr}}
+.card{background:var(--surface);border:1px solid var(--rule);border-radius:10px;padding:14px 16px;min-width:0}
+.card h3{font-size:16px;font-weight:700;color:var(--ink);margin-bottom:2px}
+.card .sub{font-size:12px;color:var(--muted);margin-bottom:8px}
+.card .src{font-size:11px;color:var(--muted);margin-top:8px;border-top:1px solid var(--rule);padding-top:6px}
+.chart{position:relative;height:320px}
+.chart.tall{height:420px}.chart.short{height:240px}
+.tile{background:var(--surface);border:1px solid var(--rule);border-radius:10px;padding:12px 14px}
+.tile .v{font-family:"Roboto Slab",serif;font-size:26px;font-weight:700;color:var(--navy)}
+:root[data-theme="dark"] .tile .v{color:#fff}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]) .tile .v{color:#fff}}
+.tile .l{font-size:12px;color:var(--ink-2);margin-top:2px}
+.tile .s{font-size:11px;color:var(--muted)}
+.crumbs{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:0 0 10px;font-size:13px}
+.crumbs button{border:1px solid var(--rule);background:var(--surface);border-radius:999px;padding:3px 10px;cursor:pointer;color:var(--ink)}
+.crumbs button.cur{background:var(--navy);color:#fff;border-color:var(--navy)}
+.crumbs .sep{color:var(--muted)}
+table.data{width:100%;border-collapse:collapse;font-size:13px}
+table.data th{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);text-align:left;padding:6px 8px;border-bottom:1px solid var(--rule);cursor:pointer;white-space:nowrap;user-select:none}
+table.data th.num,table.data td.num{text-align:right;font-variant-numeric:tabular-nums}
+table.data td{padding:6px 8px;border-bottom:1px solid var(--rule);vertical-align:top}
+table.data tr.click{cursor:pointer}
+table.data tr.click:hover{background:var(--hover)}
+table.data td.name{max-width:420px}
+.tablewrap{overflow:auto;max-height:520px}
+.pill{display:inline-block;font-size:11px;padding:1px 7px;border-radius:999px;background:var(--surface-2);color:var(--ink-2);margin-left:6px;vertical-align:middle}
+.pill.a{background:#E3F5EC;color:#0B5B36}.pill.e{background:#E7EEF9;color:#1D4C8F}.pill.r{background:#FBEFD9;color:#7A4E00}
+.delta.pos{color:#0B7A3E}.delta.neg{color:#B42318}
+.toolbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;justify-content:space-between;margin:6px 0 8px}
+.btn{border:1px solid var(--rule);background:var(--surface);border-radius:6px;padding:6px 10px;cursor:pointer;font-size:13px}
+.btn:hover{background:var(--hover)}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chips button,.chips a.chip{text-decoration:none;display:inline-block;border:1px solid var(--gold);background:var(--tint);border-radius:999px;padding:3px 10px;cursor:pointer;font-size:12px;color:var(--ink)}
+.note{font-size:12px;color:var(--ink-2);background:var(--tint);border-left:3px solid var(--gold);padding:8px 12px;border-radius:6px;margin:8px 0}
+.empty{padding:28px;text-align:center;color:var(--muted)}
+#loading{padding:60px 16px;text-align:center;color:var(--muted)}
+#loading .bar{height:6px;background:var(--rule);border-radius:3px;max-width:420px;margin:14px auto;overflow:hidden}
+#loading .bar i{display:block;height:100%;width:30%;background:var(--gold);animation:slide 1.2s infinite}
+@keyframes slide{0%{transform:translateX(-100%)}100%{transform:translateX(400%)}}
+.legendkey{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:6px;vertical-align:middle}
+.cov{display:grid;grid-template-columns:70px repeat(5,1fr);gap:3px;font-size:12px}
+.cov div{padding:4px 6px;border-radius:4px;background:var(--surface-2);text-align:center}
+.cov .h{font-weight:700;color:var(--muted);background:transparent;text-transform:uppercase;font-size:11px;letter-spacing:.06em}
+.cov .ok{background:#E3F5EC;color:#0B5B36}.cov .skip{background:#FBEFD9;color:#7A4E00}.cov .miss{background:#F8E1E1;color:#8A1C1C}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]) .cov .ok{background:#15402B;color:#B5E8CC} :root:not([data-theme="light"]) .cov .skip{background:#4A3410;color:#F3D9A4} :root:not([data-theme="light"]) .cov .miss{background:#4A1D1D;color:#F3B5B5}
+  :root:not([data-theme="light"]) .pill.a{background:#15402B;color:#B5E8CC} :root:not([data-theme="light"]) .pill.e{background:#1E3A5F;color:#BBD3F5} :root:not([data-theme="light"]) .pill.r{background:#4A3410;color:#F3D9A4}}
+#toast{position:fixed;left:50%;bottom:18px;transform:translateX(-50%) translateY(20px);background:var(--navy);color:#fff;padding:10px 16px;border-radius:8px;font-size:13px;opacity:0;pointer-events:none;transition:opacity .2s,transform .2s;max-width:90vw;z-index:50}#toast.show{opacity:1;transform:translateX(-50%)}
+
+#storybar{position:fixed;left:0;right:0;bottom:0;z-index:40;background:var(--head-bg);color:#fff;border-top:3px solid var(--buzz);padding:12px 16px calc(12px + env(safe-area-inset-bottom, 0px));box-shadow:0 -6px 24px rgba(0,0,0,.25)}
+#storybar .in{max-width:1360px;margin:0 auto;display:flex;gap:16px;align-items:center;flex-wrap:wrap}
+#storybar .step{font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--buzz);font-weight:700;white-space:nowrap}
+#storybar .cap{flex:1 1 520px;font-size:13.5px;line-height:1.45;min-width:0;max-height:38vh;overflow:auto}
+#storybar .cap p{margin:0 0 6px}
+#storybar .cap p:last-child{margin-bottom:0}
+#storybar .cap .k{color:var(--buzz);font-weight:700;letter-spacing:.02em}
+#storybar .cap i{color:#D6DBD4}
+#storybar .cap b{color:#fff}
+#storybar .btns{display:flex;gap:6px;flex:0 0 auto}
+#storybar button{border:1px solid rgba(255,255,255,.4);background:transparent;color:#fff;border-radius:6px;padding:7px 12px;cursor:pointer;font-size:13px}
+#storybar button.primary{background:var(--buzz);color:#1C2430;border-color:var(--buzz);font-weight:700}
+#storybar button:disabled{opacity:.4;cursor:default}
+body.story-on main{padding-bottom:230px}
+.pulse{outline:3px solid var(--buzz);outline-offset:4px;border-radius:12px;animation:pulse 1.6s ease-out 2}
+@keyframes pulse{0%{outline-color:var(--buzz)}100%{outline-color:transparent}}
+.storybtn{border:1px solid var(--buzz);background:var(--buzz);color:#1C2430;border-radius:6px;padding:4px 12px;cursor:pointer;font-size:12px;font-weight:700;margin-left:10px}
+
+#gate[hidden],.acct[hidden]{display:none}
+#gate{position:fixed;inset:0;z-index:60;background:var(--head-bg);display:flex;align-items:center;justify-content:center;padding:24px 16px}
+#gate .box{background:var(--surface);color:var(--ink);border-radius:12px;padding:26px 28px;max-width:420px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,.35)}
+#gate .kicker{font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--gold-deep);font-weight:700}
+#gate h2{font-size:22px;margin:4px 0 6px}
+#gate p{font-size:13px;color:var(--ink-2);margin:0 0 14px}
+#gate label{display:block;font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:700;margin:10px 0 4px}
+#gate input{width:100%;border:1px solid var(--rule);border-radius:6px;padding:9px 10px;font-size:14px;background:var(--surface);color:var(--ink)}
+#gate .row{display:flex;gap:10px;align-items:center;justify-content:space-between;margin-top:16px;flex-wrap:wrap}
+#gate button.primary{background:var(--navy);color:#fff;border:0;border-radius:6px;padding:9px 16px;font-weight:700;cursor:pointer}
+#gate button.link{background:none;border:0;color:var(--link);cursor:pointer;font-size:13px;padding:0}
+#gate .err{color:#B42318;font-size:13px;min-height:18px;margin-top:8px}
+#gate .ok{color:#0B7A3E;font-size:13px;min-height:18px;margin-top:8px}
+.acct{display:inline-flex;gap:6px;align-items:center;margin-left:10px;font-size:12px;color:#D6DBD4}
+.acct button{border:1px solid rgba(255,255,255,.35);background:transparent;color:#fff;border-radius:6px;padding:4px 10px;cursor:pointer;font-size:12px}
+footer{border-top:1px solid var(--rule);color:var(--muted);font-size:12px;padding:16px 0 28px}
+kbd.code{font-family:ui-monospace,Consolas,monospace;font-size:12px;background:var(--surface-2);padding:1px 5px;border-radius:4px}
+.themebtn{border:1px solid rgba(255,255,255,.35);background:transparent;color:#fff;border-radius:6px;padding:4px 10px;cursor:pointer;font-size:12px;margin-left:10px}
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <div class="brand">
+      <div class="kicker">Pursestrings · demonstration</div>
+      <h1>Defense Budget Explorer</h1>
+      <div class="dek">Twenty-five years of the Department's own budget exhibits, normalized into one table and joined to the Green Book, OMB and USAspending. Drill from appropriation title to line item, compare what was requested with what was enacted and spent, and follow any program across years.</div>
+    </div>
+    <div class="meta" id="meta">Loading data…<span class="acct" id="acct" hidden><span id="acctEmail"></span><button type="button" id="acctPw">Change password</button><button type="button" id="acctOut">Sign out</button></span><button class="storybtn" id="storyBtn" type="button" title="A guided seven-step walk through the data">▶ Play the story</button><button class="themebtn" id="themeToggle" type="button" title="Toggle light/dark">Theme</button></div>
+    <nav class="tabs" role="tablist" id="tabs">
+      <button role="tab" data-tab="overview" aria-selected="true">Topline since 1948</button>
+      <button role="tab" data-tab="explorer" aria-selected="false">Explorer</button>
+      <button role="tab" data-tab="vintage" aria-selected="false">Request vs. enacted vs. actual</button>
+      <button role="tab" data-tab="search" aria-selected="false">Program search</button>
+      <button role="tab" data-tab="taxonomy" aria-selected="false">Taxonomy demo</button>
+      <button role="tab" data-tab="milcon" aria-selected="false">Construction by place</button>
+      <button role="tab" data-tab="exec" aria-selected="false">Execution</button>
+      <button role="tab" data-tab="data" aria-selected="false">Data &amp; methods</button>
+    </nav>
+  </div>
+</header>
+
+<div id="gate" hidden><div class="box">
+  <div class="kicker">Pursestrings · demonstration</div>
+  <h2 id="gateTitle">Sign in to the Defense Budget Explorer</h2>
+  <p id="gateText">This demonstration is shared by invitation. Sign in with the account you were given.</p>
+  <form id="gateForm" autocomplete="on">
+    <div id="gateEmailWrap"><label for="gateEmail">Email</label><input id="gateEmail" type="email" name="email" autocomplete="username" required></div>
+    <div id="gatePassWrap"><label for="gatePass" id="gatePassLabel">Password</label><input id="gatePass" type="password" name="password" autocomplete="current-password" required minlength="8"></div>
+    <div class="err" id="gateErr"></div><div class="ok" id="gateOk"></div>
+    <div class="row"><button type="submit" class="primary" id="gateSubmit">Sign in</button><button type="button" class="link" id="gateForgot">Forgot password?</button></div>
+  </form>
+</div></div>
+<main class="wrap">
+  <div id="loading"><div>Loading 196,000 budget records (about 1.5 MB compressed)…</div><div class="bar"><i></i></div><div id="loadmsg"></div></div>
+
+  <!-- ===================== OVERVIEW ===================== -->
+  <section class="panel" id="panel-overview">
+    <div class="grid tiles" id="tiles"></div>
+    <div class="filters" style="margin-top:14px">
+      <label>Measure<div class="seg" id="ovMeasure"><button data-v="gb_ba_by_title" aria-pressed="true">Budget authority</button><button data-v="gb_toa_by_title" aria-pressed="false">TOA</button><button data-v="gb_outlays_by_title" aria-pressed="false">Outlays</button></div></label>
+      <label>Dollars<div class="seg" id="ovDollars"><button data-v="current" aria-pressed="true">Current</button><button data-v="constant" aria-pressed="false">Constant FY2023</button></div></label>
+      <label>Years <span id="ovRangeLbl" style="text-transform:none;letter-spacing:0;color:var(--ink)"></span><input type="range" id="ovFrom" min="1948" max="2027" value="1948"></label>
+    </div>
+    <div class="grid two">
+      <div class="card"><h3>Department of Defense by appropriation title</h3><div class="sub" id="ovTitleSub"></div><div class="chart tall"><canvas id="chOvTitle"></canvas></div><div class="src">Source: National Defense Budget Estimates for FY 2023 (Green Book), Tables 6-1, 6-8, 6-11. FY2023 onward are PB2023 estimates. Millions of dollars.</div></div>
+      <div class="card"><h3>National defense (function 050), 1962 to 2031</h3><div class="sub">OMB Historical Tables; shaded years are the FY2027 budget's estimates</div>
+        <div class="seg" id="ovOmb" style="margin-bottom:8px"><button data-v="ba" aria-pressed="true">Budget authority</button><button data-v="out" aria-pressed="false">Outlays</button><button data-v="gdp" aria-pressed="false">Outlays as % of GDP</button><button data-v="fed" aria-pressed="false">% of all federal outlays</button></div>
+        <div class="chart"><canvas id="chOvOmb"></canvas></div><div class="src">Source: OMB Historical Tables (FY2027 edition), Tables 3.2, 5.1 and 10.1.</div></div>
+      <div class="card"><h3>Budget authority by military department</h3><div class="sub">Current dollars, millions</div><div class="chart"><canvas id="chOvDept"></canvas></div><div class="src">Source: Green Book FY2023, Table 6-10.</div></div>
+      <div class="card"><h3>DoD manpower, 1940 to 2023</h3><div class="sub">End strength in thousands: active military by service and total civilians</div><div class="chart"><canvas id="chOvMan"></canvas></div><div class="src">Source: Green Book FY2023, Table 7-5.</div></div>
+    </div>
+  </section>
+
+  <!-- ===================== EXPLORER ===================== -->
+  <section class="panel" id="panel-explorer">
+    <div class="filters">
+      <label>Fiscal year <span id="exFyLbl" style="text-transform:none;letter-spacing:0;color:var(--ink)"></span><input type="range" id="exFy" min="2001" max="2027" value="2027"></label>
+      <label>Stage<select id="exMode"><option value="best">Best available per year (actual › enacted › request)</option><option value="2">As requested (PB of that year)</option><option value="1">As enacted (next year's PB)</option><option value="0">Actual (PB two years later)</option></select></label>
+      <label>Dollars<div class="seg" id="exDollars"><button data-v="current" aria-pressed="true">Current</button><button data-v="constant" aria-pressed="false">Constant FY2027</button></div></label>
+      <label>Exhibit<select id="exEx"><option value="">All four titles</option><option value="p1">P-1 Procurement</option><option value="r1">R-1 RDT&amp;E</option><option value="o1">O-1 Operation &amp; Maintenance</option><option value="m1">M-1 Military Personnel</option></select></label>
+      <label>Organization<select id="exOrg"><option value="">All</option></select></label>
+      <label>Series window<select id="exWin"><option value="10">Last 10 years</option><option value="15">Last 15 years</option><option value="27" selected>All years (2001 to 2027)</option></select></label>
+    </div>
+    <div class="crumbs" id="exCrumbs"></div>
+    <div class="grid two">
+      <div class="card"><h3 id="exBarTitle">Composition</h3><div class="sub" id="exBarSub"></div><div class="chart tall"><canvas id="chExBar"></canvas></div></div>
+      <div class="card"><h3 id="exTsTitle">Over time</h3><div class="sub" id="exTsSub"></div><div class="chart tall"><canvas id="chExTs"></canvas></div></div>
+    </div>
+    <div class="card" style="margin-top:14px">
+      <div class="toolbar"><div><h3 id="exTblTitle">Detail</h3><div class="sub" id="exTblSub"></div></div><div><button class="btn" id="exCsv">Copy table as CSV</button></div></div>
+      <div class="tablewrap"><table class="data" id="exTable"></table></div>
+      <div class="src">Click a row or bar to drill down; use the breadcrumb to come back up. Amounts are thousands of dollars in the exhibits, shown here as millions or billions. Stage badge shows which budget vintage supplied the value for the selected year.</div>
+    </div>
+  </section>
+
+  <!-- ===================== VINTAGE ===================== -->
+  <section class="panel" id="panel-vintage">
+    <div class="filters">
+      <label>Fiscal year<select id="vFy"></select></label>
+      <label>Level<select id="vLevel"><option value="ex">Appropriation title</option><option value="org">Organization</option><option value="acct" selected>Account</option><option value="ba">Budget activity</option><option value="line">Line item</option></select></label>
+      <label>Exhibit<select id="vEx"><option value="">All four titles</option><option value="p1">P-1 Procurement</option><option value="r1">R-1 RDT&amp;E</option><option value="o1">O-1 Operation &amp; Maintenance</option><option value="m1">M-1 Military Personnel</option></select></label>
+      <label>Sort by<select id="vSort"><option value="dAE">Actual minus enacted</option><option value="dER" selected>Enacted minus request</option><option value="dAR">Actual minus request</option><option value="req">Request size</option></select></label>
+      <label>Show<div class="seg" id="vAbs"><button data-v="abs" aria-pressed="true">Largest dollar moves</button><button data-v="pct" aria-pressed="false">Largest percent moves</button></div></label>
+    </div>
+    <div class="grid tiles" id="vTiles"></div>
+    <div class="grid two" style="margin-top:14px">
+      <div class="card"><h3>Biggest movers</h3><div class="sub" id="vChartSub"></div><div class="chart tall"><canvas id="chVint"></canvas></div></div>
+      <div class="card"><h3>How the three vintages line up</h3><div class="sub">Each dot is one row at the chosen level; the diagonal is "enacted exactly what was requested"</div><div class="chart tall"><canvas id="chVintScatter"></canvas></div></div>
+    </div>
+    <div class="card" style="margin-top:14px">
+      <div class="toolbar"><div><h3>All rows</h3><div class="sub" id="vTblSub"></div></div><button class="btn" id="vCsv">Copy as CSV</button></div>
+      <div class="tablewrap"><table class="data" id="vTable"></table></div>
+      <div class="note" id="vNote"></div>
+    </div>
+  </section>
+
+  <!-- ===================== SEARCH ===================== -->
+  <section class="panel" id="panel-search">
+    <div class="filters">
+      <label style="flex:1 1 320px">Search line items, program elements, accounts<input type="search" id="sQ" placeholder="e.g. F-35, Javelin, Columbia, hypersonic, 0603286E…"></label>
+      <label>Stage<select id="sMode"><option value="best">Best available</option><option value="2">As requested</option><option value="1">As enacted</option><option value="0">Actual</option></select></label>
+      <label>Dollars<div class="seg" id="sDollars"><button data-v="current" aria-pressed="true">Current</button><button data-v="constant" aria-pressed="false">Constant FY2027</button></div></label>
+    </div>
+    <div class="chips" id="sChips"></div>
+    <div class="grid two" style="margin-top:12px">
+      <div class="card"><h3>Trajectories of the top matches</h3><div class="sub" id="sChartSub"></div><div class="chart tall"><canvas id="chSearch"></canvas></div></div>
+      <div class="card"><h3>Where the money sits in the latest year</h3><div class="sub" id="sBarSub"></div><div class="chart tall"><canvas id="chSearchBar"></canvas></div></div>
+    </div>
+    <div class="card" style="margin-top:14px">
+      <div class="toolbar"><div><h3>Matching lines</h3><div class="sub" id="sTblSub"></div></div><button class="btn" id="sCsv">Copy as CSV</button></div>
+      <div class="tablewrap"><table class="data" id="sTable"></table></div>
+    </div>
+  </section>
+
+  <!-- ===================== TAXONOMY ===================== -->
+  <section class="panel" id="panel-taxonomy">
+    <div class="note" id="txIntro"></div>
+    <div class="filters">
+      <label>Dimension<select id="txDim"></select></label>
+      <label>Fiscal year <span id="txFyLbl" style="text-transform:none;letter-spacing:0;color:var(--ink)"></span><input type="range" id="txFy" min="2001" max="2027" value="2026"></label>
+      <label>Stage<select id="txMode"><option value="best">Best available per year</option><option value="2">As requested</option><option value="1">As enacted</option><option value="0">Actual</option></select></label>
+      <label>Dollars<div class="seg" id="txDollars"><button data-v="current" aria-pressed="true">Current</button><button data-v="constant" aria-pressed="false">Constant FY2027</button></div></label>
+      <label>Cross with<select id="txDim2"></select></label>
+      <label>Unclassifiable lines<div class="seg" id="txX"><button data-v="show" aria-pressed="true">Show</button><button data-v="hide" aria-pressed="false">Hide</button></div></label>
+    </div>
+    <div class="grid tiles" id="txTiles"></div>
+    <div class="grid two" style="margin-top:14px">
+      <div class="card"><h3 id="txBarTitle">RDT&amp;E dollars by label</h3><div class="sub" id="txBarSub"></div><div class="chart tall"><canvas id="chTxBar"></canvas></div></div>
+      <div class="card"><h3 id="txTsTitle">Over time</h3><div class="sub" id="txTsSub"></div><div class="chart tall"><canvas id="chTxTs"></canvas></div></div>
+    </div>
+    <div class="grid two" style="margin-top:14px">
+      <div class="card"><h3 id="txXtabTitle">Balance analysis: two dimensions crossed</h3><div class="sub" id="txXtabSub"></div><div class="tablewrap" style="max-height:460px"><table class="data" id="txXtab"></table></div><div class="src">Each cell is the dollars in lines carrying both labels in the selected year; shading is relative to the largest cell. Empty cells are the taxonomy's "empty space": combinations the Department does not fund, or that the exhibit cannot show.</div></div>
+      <div class="card"><div class="toolbar"><div><h3 id="txLinesTitle">Program elements in the selected label</h3><div class="sub" id="txLinesSub">Click a bar or a row in the table below to list the lines the classifier placed there.</div></div><button class="btn" id="txCsv">Copy as CSV</button></div><div class="tablewrap" style="max-height:460px"><table class="data" id="txLines"></table></div></div>
+    </div>
+    <div class="card" style="margin-top:14px">
+      <div class="toolbar"><div><h3>Labels in this dimension</h3><div class="sub" id="txTblSub"></div></div></div>
+      <div class="tablewrap"><table class="data" id="txTable"></table></div>
+    </div>
+    <div class="card" style="margin-top:14px" id="txProcess"></div>
+  </section>
+
+  <!-- ===================== MILCON ===================== -->
+  <section class="panel" id="panel-milcon">
+    <div class="filters">
+      <label>Fiscal year <span id="mFyLbl" style="text-transform:none;letter-spacing:0;color:var(--ink)"></span><input type="range" id="mFy" min="2003" max="2027" value="2027"></label>
+      <label>Stage<select id="mMode"><option value="best">Best available</option><option value="2">As requested</option><option value="1">As enacted</option><option value="0">Actual</option></select></label>
+      <label>Organization<select id="mOrg"><option value="">All</option></select></label>
+      <label>Scope<div class="seg" id="mScope"><button data-v="all" aria-pressed="true">All places</button><button data-v="us" aria-pressed="false">US states</button><button data-v="abroad" aria-pressed="false">Overseas</button></div></label>
+    </div>
+    <div class="crumbs" id="mCrumbs"></div>
+    <div class="grid two">
+      <div class="card"><h3 id="mBarTitle">Military construction and family housing appropriations by place</h3><div class="sub" id="mBarSub"></div><div class="chart tall"><canvas id="chMil"></canvas></div></div>
+      <div class="card"><h3>Over time</h3><div class="sub" id="mTsSub"></div><div class="chart tall"><canvas id="chMilTs"></canvas></div></div>
+    </div>
+    <div class="card" style="margin-top:14px">
+      <div class="toolbar"><div><h3 id="mTblTitle">Projects</h3><div class="sub" id="mTblSub"></div></div><button class="btn" id="mCsv">Copy as CSV</button></div>
+      <div class="tablewrap"><table class="data" id="mTable"></table></div>
+      <div class="src">Source: C-1 exhibits (Military Construction, Family Housing and BRAC), PB FY2005 to FY2027, appropriation amount by project. Thousands of dollars in the source.</div>
+    </div>
+  </section>
+
+  <!-- ===================== EXECUTION ===================== -->
+  <section class="panel" id="panel-exec">
+    <div class="grid two">
+      <div class="card"><h3>Department of Defense: resources, obligations and outlays</h3><div class="sub">USAspending.gov, agency 097, all accounts, by fiscal year (billions of dollars)</div><div class="chart tall"><canvas id="chExec"></canvas></div><div class="src">Source: USAspending API, <kbd class="code">/api/v2/agency/097/budgetary_resources/</kbd>, snapshot taken when this page was built. Figures include mandatory accounts and unobligated balances carried forward, so they are not comparable one-for-one with the discretionary request.</div></div>
+      <div class="card"><h3>Obligation rate</h3><div class="sub">Obligations and outlays as a share of the year's total budgetary resources</div><div class="chart tall"><canvas id="chExecRate"></canvas></div>
+        <div class="note">Why it matters for oversight: the exhibits on the other tabs say what was requested and enacted; USAspending says what the Department actually obligated and paid out. Pursestrings links those two records at the account level, so an under-execution signal in a given account can be traced back to the line items that were funded.</div>
+        <div class="src">Extend this view: the same API exposes <kbd class="code">/federal_account/</kbd> and <kbd class="code">/program_activity/</kbd> for agency 097, and the DATA Act account files on USAspending give monthly obligations by Treasury account.</div></div>
+    </div>
+  </section>
+
+  <!-- ===================== DATA ===================== -->
+  <section class="panel" id="panel-data">
+    <div class="grid two">
+      <div class="card"><h3>Sources</h3>
+        <ul style="padding-left:18px;margin:6px 0">
+          <li><b>Budget exhibits</b>, Office of the Under Secretary of War (Comptroller), <a href="https://comptroller.war.gov/Budget-Materials/" target="_blank" rel="noopener">Budget Materials</a>, FY2003 through FY2027 pages. Excel exhibits: P-1 (Procurement), R-1 (RDT&amp;E), O-1 (Operation and Maintenance), M-1 (Military Personnel), C-1 (Military Construction, Family Housing and BRAC). Each President's Budget carries three fiscal years: prior-year actual, current-year enacted and the budget-year request.</li>
+          <li><b>National Defense Budget Estimates for FY 2023</b> (Green Book), Excel archive: Tables 6-1, 6-8, 6-10, 6-11 (TOA, budget authority and outlays by public-law title and by military department, FY1948 to FY2027), 7-5 (manpower), 7-7 (defense shares of GDP and federal outlays), 5-6 (deflators). Later Green Books are published as PDF only.</li>
+          <li><b>OMB Historical Tables</b>, FY2027 edition: Table 3.2 (outlays by function), Table 5.1 (budget authority by function), Table 10.1 (GDP and deflators), <a href="https://www.whitehouse.gov/omb/information-resources/budget/historical-tables/" target="_blank" rel="noopener">whitehouse.gov/omb</a>.</li>
+          <li><b>USAspending.gov API</b>, agency 097 budgetary resources, <a href="https://api.usaspending.gov/api/v2/agency/097/budgetary_resources/" target="_blank" rel="noopener">live endpoint</a>.</li>
+        </ul>
+        <h3 style="margin-top:12px">How the exhibits were normalized</h3>
+        <ul style="padding-left:18px;margin:6px 0;font-size:13px">
+          <li>Every file's header row was mapped to one schema: account, organization, budget activity, sub-activity, line (program element, budget line item, sub-activity group or military-personnel sub-activity), title, and amount by fiscal year.</li>
+          <li>For each fiscal year inside a file, one amount column was chosen: the "Total" column where one exists (base plus OCO, emergency, supplemental or reconciliation), otherwise the single column, otherwise base plus OCO summed. Quantity columns were ignored.</li>
+          <li>P-1 "Non-Add" rows (advance-procurement breakouts) were excluded so advance procurement is counted once; this is why P-1 sums are below the sheets' own "Total of Displayed Rows" check figure, which naively adds them. M-1, O-1 and R-1 sums match their check figures exactly.</li>
+          <li>Lines flagged "Include in TOA = N" (for example Defense Health Program RDT&amp;E shown in the R-1) are kept and flagged, so the exhibits total as displayed.</li>
+          <li>The <i>stage</i> of a value comes from its position: the budget year is the <b>request</b>, the prior year is <b>enacted</b>, the year before that is <b>actual</b>. In four budgets the "enacted" column was in fact the request adjusted for a continuing resolution (PB2014 for FY2013, PB2018 for FY2017, PB2019 for FY2018, PB2025 for FY2024); those are labeled in the vintage view.</li>
+          <li>Lines are linked across years by exhibit, four-digit account, organization and line code; titles shown are from the most recent budget that carried the line. Older exhibits in all capitals were title-cased.</li>
+          <li>The FY2027 request columns are the exhibits' "Total" columns, which add the mandatory (reconciliation) request to the discretionary request; FY2026 totals likewise include the P.L. 119-21 spend plan. This is why FY2027 steps up sharply in every view.</li>
+          <li>Constant dollars use OMB's composite outlay deflator for national defense (Table 10.1), rebased to FY2027; the Green Book view uses the Comptroller's own FY2023 constant-dollar tables.</li>
+          <li>Not parsed: the FY2003 and FY2004 O-1 and the FY2003 to FY2005 M-1, which were published as formatted print layouts rather than tables; the FY2003 and FY2004 C-1, which had no appropriation column. Revolving funds (RF-1) and the reserve-component procurement view (P-1R, a subset of the P-1) are not included.</li>
+        </ul>
+      </div>
+      <div class="card"><h3>Coverage: President's Budget year by exhibit</h3><div class="sub">Green cells were parsed and reconciled; amber were skipped; red were not on the site</div><div class="cov" id="coverage"></div>
+        <h3 style="margin-top:14px">Downloads</h3><div class="sub">The normalized tables behind this page, as CSV files published with it (open, then save from the browser)</div>
+        <div class="chips"><a class="chip" href="dod_p1_procurement_lines.csv" target="_blank" rel="noopener">P-1 lines</a><a class="chip" href="dod_r1_rdte_lines.csv" target="_blank" rel="noopener">R-1 lines</a><a class="chip" href="dod_o1_om_lines.csv" target="_blank" rel="noopener">O-1 lines</a><a class="chip" href="dod_m1_milpers_lines.csv" target="_blank" rel="noopener">M-1 lines</a><a class="chip" href="dod_c1_projects.csv" target="_blank" rel="noopener">C-1 projects</a><a class="chip" href="green_book_fy2023_series.csv" target="_blank" rel="noopener">Green Book series</a><a class="chip" href="omb_function_050_series.csv" target="_blank" rel="noopener">OMB function 050</a><a class="chip" href="data.json" target="_blank" rel="noopener">Full bundle (JSON, 7.5 MB)</a></div>
+        <h3 style="margin-top:14px">Column chosen for each file and year</h3><div class="sub">The audit trail for the stage assignment</div>
+        <div class="tablewrap" style="max-height:360px"><table class="data" id="colTable"></table></div>
+      </div>
+    </div>
+  </section>
+</main>
+<div id="storybar" hidden><div class="in"><div class="step" id="storyStep"></div><div class="cap" id="storyCap"></div><div class="btns"><button id="storyPrev" type="button">‹ Back</button><button id="storyNext" type="button" class="primary">Next ›</button><button id="storyExit" type="button">Exit</button></div></div></div>
+<footer><div class="wrap">Built as a Pursestrings demonstration, Sam Nunn School of International Affairs, Georgia Tech. All figures are as published by the sources named above; this page adds no estimates of its own. Questions: tchaudhary@gatech.edu</div></footer>
+
+<script>
+(async function(){
+"use strict";
+const $ = (s, el=document) => el.querySelector(s);
+const $$ = (s, el=document) => Array.from(el.querySelectorAll(s));
+const css = v => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+const SERIES = () => ['--s1','--s2','--s3','--s4','--s5','--s6','--s7','--s8'].map(css);
+const OTHER = () => css('--sOther');
+const EXNAME = {p1:'Procurement (P-1)', r1:'RDT&E (R-1)', o1:'Operation & Maintenance (O-1)', m1:'Military Personnel (M-1)'};
+const EXORDER = ['m1','o1','p1','r1'];
+const STAGE_NAME = ['actual','enacted','request'];
+const STAGE_CLS = ['a','e','r'];
+const fmtB = (k, d=1) => { // thousands -> human
+  if (k == null || isNaN(k)) return '–';
+  const a = Math.abs(k), sign = k < 0 ? '−' : '';
+  if (a >= 1e6) return sign + '$' + (a/1e6).toFixed(d) + 'B';
+  if (a >= 1e3) return sign + '$' + (a/1e3).toFixed(a >= 1e5 ? 0 : d) + 'M';
+  return sign + '$' + a.toFixed(0) + 'K';
+};
+const fmtM = (m, d=1) => fmtB(m*1000, d); // millions -> human
+const fmtPct = (p, d=1) => (p == null || !isFinite(p)) ? '–' : (p > 0 ? '+' : '') + (p*100).toFixed(d) + '%';
+const esc = s => String(s ?? '');
+var toastTimer; function toast(msg){ let t = document.querySelector('#toast'); if (!t){ t = document.createElement('div'); t.id = 'toast'; document.body.appendChild(t); } t.textContent = msg; t.classList.add('show'); clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove('show'), 3200); }
+const dl = async (name, text) => { const rows = text.split(String.fromCharCode(10)).length - 1; try { await navigator.clipboard.writeText(text); toast(`Copied ${rows.toLocaleString()} rows as CSV (${name}). Paste into Excel or a text file.`); } catch (e) { const ta = document.createElement('textarea'); ta.value = text; ta.style.cssText = 'position:fixed;left:8px;bottom:8px;width:60vw;height:40vh;z-index:99'; document.body.appendChild(ta); ta.select(); toast('Clipboard blocked; the CSV is selected in the box at the bottom left. Copy it, then click elsewhere to close.'); ta.addEventListener('blur', () => ta.remove()); } };
+const csvRow = arr => arr.map(v => { v = v == null ? '' : String(v); return /[",\n]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v; }).join(',');
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+
+// ---------- theme ----------
+const themeBtn = $('#themeToggle');
+themeBtn.addEventListener('click', () => { const cur = document.documentElement.getAttribute('data-theme'); const dark = cur ? cur === 'dark' : matchMedia('(prefers-color-scheme: dark)').matches; document.documentElement.setAttribute('data-theme', dark ? 'light' : 'dark'); try { localStorage.setItem('dbe-theme', dark ? 'light' : 'dark'); } catch(e){} rerenderAll(); });
+try { const t = localStorage.getItem('dbe-theme'); if (t) document.documentElement.setAttribute('data-theme', t); } catch(e){}
+matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => rerenderAll());
+
+// ---------- data load ----------
+
+// ---------- hosted mode: Supabase sign-in gate and private data bucket ----------
+const CFG = (typeof window !== 'undefined' && window.DBE) || null;
+const HOSTED = !!(CFG && CFG.SUPABASE_URL && CFG.SUPABASE_ANON_KEY);
+let SB = null;
+async function sbClient(){ if (SB) return SB; const { createClient } = await import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm'); SB = createClient(CFG.SUPABASE_URL, CFG.SUPABASE_ANON_KEY, { auth: { persistSession: true, detectSessionInUrl: true, flowType: 'implicit' } }); return SB; }
+function gateMode(mode){ const f = $('#gateForm'); const t = $('#gateTitle'), x = $('#gateText'), em = $('#gateEmailWrap'), pw = $('#gatePassWrap'), lbl = $('#gatePassLabel'), sub = $('#gateSubmit'), fg = $('#gateForgot'); $('#gateErr').textContent = ''; $('#gateOk').textContent = ''; f.dataset.mode = mode;
+  if (mode === 'signin'){ t.textContent = 'Sign in to the Defense Budget Explorer'; x.textContent = 'This demonstration is shared by invitation. Sign in with the account you were given.'; em.hidden = false; pw.hidden = false; lbl.textContent = 'Password'; $('#gatePass').autocomplete = 'current-password'; sub.textContent = 'Sign in'; fg.hidden = false; fg.textContent = 'Forgot password?'; }
+  if (mode === 'forgot'){ t.textContent = 'Reset your password'; x.textContent = 'Enter the account email and we will send a link that lets you choose a new password.'; em.hidden = false; pw.hidden = true; sub.textContent = 'Send reset link'; fg.hidden = false; fg.textContent = 'Back to sign in'; }
+  if (mode === 'setpw'){ t.textContent = 'Choose a password'; x.textContent = 'You are signed in through an email link. Set a password (at least 8 characters) to use from now on.'; em.hidden = true; pw.hidden = false; lbl.textContent = 'New password'; $('#gatePass').autocomplete = 'new-password'; sub.textContent = 'Save password'; fg.hidden = true; } }
+function showGate(mode){ $('#gate').hidden = false; gateMode(mode); setTimeout(() => (mode === 'setpw' ? $('#gatePass') : $('#gateEmail')).focus(), 50); }
+function hideGate(){ $('#gate').hidden = true; }
+async function requireSession(){
+  const sb = await sbClient(); let needPw = false;
+  sb.auth.onAuthStateChange((event) => { if (event === 'PASSWORD_RECOVERY') { needPw = true; showGate('setpw'); } });
+  const urlHash = location.hash || ''; const fromLink = /access_token=|type=invite|type=recovery|type=magiclink/.test(urlHash);
+  let { data: { session } } = await sb.auth.getSession();
+  if (!session && fromLink){ await new Promise(r => setTimeout(r, 800)); ({ data: { session } } = await sb.auth.getSession()); }
+  if (session && (fromLink && /type=invite|type=recovery/.test(urlHash) || needPw)){ showGate('setpw'); await waitForGate(sb); }
+  else if (!session){ showGate('signin'); await waitForGate(sb); }
+  ({ data: { session } } = await sb.auth.getSession());
+  hideGate(); if (fromLink) { try { history.replaceState(null, '', location.pathname); } catch(e){} }
+  $('#acct').hidden = false; $('#acctEmail').textContent = session?.user?.email || '';
+  return sb;
+}
+function waitForGate(sb){ return new Promise(resolve => {
+  const f = $('#gateForm'); const err = $('#gateErr'), ok = $('#gateOk');
+  const onSubmit = async (e) => { e.preventDefault(); err.textContent = ''; ok.textContent = ''; const mode = f.dataset.mode; const email = $('#gateEmail').value.trim(), pass = $('#gatePass').value; $('#gateSubmit').disabled = true;
+    try {
+      if (mode === 'signin'){ const { error } = await sb.auth.signInWithPassword({ email, password: pass }); if (error) throw error; cleanup(); resolve(); }
+      else if (mode === 'forgot'){ const { error } = await sb.auth.resetPasswordForEmail(email, { redirectTo: location.origin + location.pathname }); if (error) throw error; ok.textContent = 'If that address has an account, a reset link is on its way.'; }
+      else if (mode === 'setpw'){ const { error } = await sb.auth.updateUser({ password: pass }); if (error) throw error; cleanup(); resolve(); }
+    } catch (ex) { err.textContent = ex.message || String(ex); }
+    $('#gateSubmit').disabled = false; };
+  const onForgot = () => gateMode(f.dataset.mode === 'forgot' ? 'signin' : 'forgot');
+  const cleanup = () => { f.removeEventListener('submit', onSubmit); $('#gateForgot').removeEventListener('click', onForgot); };
+  f.addEventListener('submit', onSubmit); $('#gateForgot').addEventListener('click', onForgot);
+}); }
+async function fetchDataFile(name){
+  if (!HOSTED) { const r = await fetch(name); if (!r.ok) throw new Error(name + ' ' + r.status); return r; }
+  const sb = await sbClient(); const { data, error } = await sb.storage.from(CFG.BUCKET || 'data').download(name); if (error) throw new Error(name + ': ' + error.message); return new Response(data);
+}
+if (HOSTED){ await requireSession();
+  $('#acctOut').addEventListener('click', async () => { const sb = await sbClient(); await sb.auth.signOut(); location.reload(); });
+  $('#acctPw').addEventListener('click', async () => { const sb = await sbClient(); showGate('setpw'); await waitForGate(sb); hideGate(); toast('Password updated.'); });
+  // downloads on the Data tab become short-lived signed links
+  for (const a of $$('a.chip[href]')){ const name = a.getAttribute('href'); if (/^https?:/.test(name)) continue; a.addEventListener('click', async (e) => { e.preventDefault(); const sb = await sbClient(); const { data, error } = await sb.storage.from(CFG.BUCKET || 'data').createSignedUrl(name, 300); if (error) { toast('Could not open ' + name + ': ' + error.message); return; } window.open(data.signedUrl, '_blank', 'noopener'); }); }
+}
+
+async function loadData(){
+  const msg = $('#loadmsg');
+  try {
+    const r = await fetchDataFile('data.b64.txt');
+    const b64 = (await r.text()).trim(); const bin = atob(b64); const buf = new Uint8Array(bin.length); for (let i = 0; i < bin.length; i++) buf[i] = bin.charCodeAt(i);
+    const text = (buf[0] === 0x1f && buf[1] === 0x8b) ? pako.ungzip(buf, {to:'string'}) : new TextDecoder().decode(buf);
+    return JSON.parse(text);
+  } catch (e) {
+    msg.textContent = 'Compressed bundle unavailable (' + e.message + '); loading plain JSON…';
+    const r = await fetchDataFile('data.json'); return await r.json();
+  }
+}
+const D = await loadData();
+const L = D.lines, M = D.milcon, MACRO = D.macro;
+const F = Object.fromEntries(L.fields.map((f, i) => [f, i]));
+const MF = Object.fromEntries(M.fields.map((f, i) => [f, i]));
+const NID = L.ids.length;
+// value index: per identity, per fy, per stage
+const VAL = new Map(); // key id*10000+fy -> [actual, enacted, request]
+{ const R = L.rec; for (let i = 0; i < R.id.length; i++){ const k = R.id[i]*10000 + R.fy[i]; let a = VAL.get(k); if (!a){ a = [null,null,null]; VAL.set(k, a); } const st = R.stage[i]; a[st] = (a[st] ?? 0) + R.amt[i]; } }
+const MVAL = new Map();
+{ const R = M.rec; for (let i = 0; i < R.id.length; i++){ const k = R.id[i]*10000 + R.fy[i]; let a = MVAL.get(k); if (!a){ a = [null,null,null]; MVAL.set(k, a); } const st = R.stage[i]; a[st] = (a[st] ?? 0) + R.amt[i]; } }
+let FY_MIN = 9999, FY_MAX = 0; for (const y of L.rec.fy){ if (y < FY_MIN) FY_MIN = y; if (y > FY_MAX) FY_MAX = y; }
+// Best available vintage is decided per fiscal year, not per line: if any actuals exist for a year, that year is read from actuals only, so lines that were requested but never funded do not leak in.
+const BEST_STAGE = {}, MBEST_STAGE = {};
+{ const seen = {}; const R = L.rec; for (let i = 0; i < R.id.length; i++){ (seen[R.fy[i]] ||= new Set()).add(R.stage[i]); } for (const fy in seen) BEST_STAGE[fy] = Math.min(...seen[fy]);
+  const ms = {}; const Q = M.rec; for (let i = 0; i < Q.id.length; i++){ (ms[Q.fy[i]] ||= new Set()).add(Q.stage[i]); } for (const fy in ms) MBEST_STAGE[fy] = Math.min(...ms[fy]); }
+function pick(arr, mode, fy, best=BEST_STAGE){ if (!arr) return [null, null]; const s = mode === 'best' ? best[fy] : +mode; if (s == null) return [null, null]; return [arr[s], arr[s] == null ? null : s]; }
+// deflator (OMB defense outlay deflator) rebased to FY2027
+const DEFL = {}; { const g = MACRO.omb_gdp; const base = g['2027'].outlay_deflator_defense; for (const y in g){ if (g[y].outlay_deflator_defense) DEFL[y] = base / g[y].outlay_deflator_defense; } }
+const defl = (v, fy, constant) => (v == null) ? null : (constant ? v * (DEFL[fy] ?? 1) : v);
+// org lists
+const ORGS = Array.from(new Set(L.ids.map(r => r[F.org]))).sort((a,b) => { const big = ['Army','Navy','Marine Corps','Air Force','Space Force','Defense-Wide']; const ia = big.indexOf(a), ib = big.indexOf(b); if (ia >= 0 || ib >= 0) return (ia < 0 ? 99 : ia) - (ib < 0 ? 99 : ib); return a.localeCompare(b); });
+const MORGS = Array.from(new Set(M.ids.map(r => r[MF.org]))).sort();
+for (const o of ORGS){ const op = document.createElement('option'); op.value = o; op.textContent = o; $('#exOrg').appendChild(op); }
+for (const o of MORGS){ const op = document.createElement('option'); op.value = o; op.textContent = o; $('#mOrg').appendChild(op); }
+{ const meta = $('#meta'); const btn = themeBtn; const sbtn = $('#storyBtn'); const acct = $('#acct'); meta.textContent = ''; meta.insertAdjacentHTML('afterbegin', `<b>${L.rec.id.length.toLocaleString()}</b> exhibit values · <b>${NID.toLocaleString()}</b> line items · <b>${M.ids.length.toLocaleString()}</b> construction projects<br>President's Budgets <b>FY2003 to FY2027</b> · data years FY${FY_MIN} to FY${FY_MAX}`); if (acct) meta.appendChild(acct); if (sbtn) meta.appendChild(sbtn); meta.appendChild(btn); }
+$('#loading').remove();
+
+// ---------- chart helpers ----------
+const CH = {};
+function mkChart(id, cfg){ if (CH[id]) { CH[id].destroy(); } const ctx = $('#' + id); Chart.defaults.font.family = 'Roboto, system-ui, sans-serif'; Chart.defaults.color = css('--tick'); cfg.options = cfg.options || {}; cfg.options.maintainAspectRatio = false; cfg.options.responsive = true; cfg.options.animation = false; cfg.options.interaction = cfg.options.interaction || {mode:'index', intersect:false}; cfg.options.plugins = cfg.options.plugins || {}; cfg.options.plugins.legend = Object.assign({labels:{boxWidth:10, boxHeight:10, padding:12, usePointStyle:false}}, cfg.options.plugins.legend || {}); cfg.options.plugins.tooltip = Object.assign({backgroundColor: css('--surface'), titleColor: css('--ink'), bodyColor: css('--ink'), borderColor: css('--rule'), borderWidth:1, padding:10, boxWidth:10, boxHeight:3, usePointStyle:false}, cfg.options.plugins.tooltip || {}); for (const ax of Object.values(cfg.options.scales || {})) { ax.grid = Object.assign({color: css('--grid'), drawTicks:false}, ax.grid || {}); ax.border = Object.assign({color: css('--grid')}, ax.border || {}); ax.ticks = Object.assign({color: css('--tick')}, ax.ticks || {}); } CH[id] = new Chart(ctx, cfg); return CH[id]; }
+const moneyTick = (unitK) => v => { const k = unitK ? v : v*1000; const a = Math.abs(k); if (a >= 1e6) return '$' + (k/1e6).toFixed(a >= 1e7 ? 0 : 1) + 'B'; if (a >= 1e3) return '$' + (k/1e3).toFixed(0) + 'M'; return '$' + k + 'K'; };
+function areaDataset(label, data, color, stack='s'){ return {label, data, borderColor: color, backgroundColor: color + 'B3', fill: true, stack, borderWidth: 1.2, pointRadius: 0, pointHitRadius: 12, tension: 0.15, spanGaps:false}; }
+function lineDataset(label, data, color){ return {label, data, borderColor: color, backgroundColor: color, fill: false, borderWidth: 2, pointRadius: 0, pointHoverRadius: 4, pointHitRadius: 14, tension: 0.15, spanGaps:false}; }
+function hbar(id, labels, values, colors, fmt, onClick, extra={}){
+  return mkChart(id, {type:'bar', data:{labels, datasets:[{data: values, backgroundColor: colors, borderWidth:0, borderRadius:3, barPercentage:0.85, categoryPercentage:0.9}]},
+    options:{indexAxis:'y', interaction:{mode:'nearest', axis:'y', intersect:false}, onClick:(e, els) => { if (els.length && onClick) onClick(els[0].index); }, onHover:(e, els) => { e.native.target.style.cursor = els.length && onClick ? 'pointer' : 'default'; },
+      plugins:{legend:{display:false}, tooltip:{callbacks:{label: c => ' ' + fmt(c.raw) + (extra.share ? '  ·  ' + fmtPct(extra.share[c.dataIndex], 1).replace('+','') + ' of total' : '')}}},
+      scales:{x:{ticks:{callback: fmt, maxTicksLimit:6}}, y:{grid:{display:false}, ticks:{autoSkip:false, font:{size:11}, callback:function(v){ const s = this.getLabelForValue(v); return s.length > 38 ? s.slice(0,36) + '…' : s; }}}}}});
+}
+function seg(id, onChange){ const el = $('#' + id); el.addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; $$('button', el).forEach(x => x.setAttribute('aria-pressed', x === b ? 'true' : 'false')); onChange(b.dataset.v); }); return () => $('button[aria-pressed="true"]', el).dataset.v; }
+function sortable(table, rows, cols, render){ // cols: [{key,label,num}], rows: objects; render(tbody, rows)
+  let sortKey = table.dataset.sort || cols.find(c => c.num)?.key, dir = table.dataset.dir || 'desc';
+  const draw = () => { const r = rows.slice().sort((a,b) => { const x = a[sortKey], y = b[sortKey]; if (x == null && y == null) return 0; if (x == null) return 1; if (y == null) return -1; return (typeof x === 'number' ? x - y : String(x).localeCompare(String(y))) * (dir === 'asc' ? 1 : -1); }); table.innerHTML = ''; const thead = document.createElement('thead'); const tr = document.createElement('tr'); for (const c of cols){ const th = document.createElement('th'); th.textContent = c.label + (c.key === sortKey ? (dir === 'asc' ? ' ▲' : ' ▼') : ''); if (c.num) th.className = 'num'; th.addEventListener('click', () => { if (sortKey === c.key) dir = dir === 'asc' ? 'desc' : 'asc'; else { sortKey = c.key; dir = c.num ? 'desc' : 'asc'; } table.dataset.sort = sortKey; table.dataset.dir = dir; draw(); }); tr.appendChild(th); } thead.appendChild(tr); table.appendChild(thead); const tb = document.createElement('tbody'); render(tb, r); table.appendChild(tb); }; draw(); }
+function td(tr, text, cls, html){ const c = document.createElement('td'); if (cls) c.className = cls; if (html) c.innerHTML = html; else c.textContent = text; tr.appendChild(c); return c; }
+const pillHtml = s => s == null ? '' : `<span class="pill ${STAGE_CLS[s]}">${STAGE_NAME[s]}</span>`;
+const deltaHtml = (v, fmt) => v == null ? '–' : `<span class="delta ${v >= 0 ? 'pos' : 'neg'}">${v >= 0 ? '+' : '−'}${fmt(Math.abs(v))}</span>`;
+
+// ---------- tabs ----------
+const panels = {}; let activeTab = 'overview';
+$('#tabs').addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; showTab(b.dataset.tab); });
+function showTab(t){ activeTab = t; $$('#tabs button').forEach(b => b.setAttribute('aria-selected', b.dataset.tab === t ? 'true':'false')); $$('.panel').forEach(p => p.classList.toggle('active', p.id === 'panel-' + t)); try { location.hash = t; } catch(e){} (RENDER[t] || (()=>{}))(); }
+const RENDER = {};
+function rerenderAll(){ (RENDER[activeTab] || (()=>{}))(); }
+
+// ===================== OVERVIEW =====================
+const ov = {measure:'gb_ba_by_title', dollars:'current', from:1948, omb:'ba'};
+const getOvMeasure = seg('ovMeasure', v => { ov.measure = v; renderOverview(); });
+const getOvDollars = seg('ovDollars', v => { ov.dollars = v; renderOverview(); });
+seg('ovOmb', v => { ov.omb = v; renderOmb(); });
+$('#ovFrom').addEventListener('input', e => { ov.from = +e.target.value; $('#ovRangeLbl').textContent = `from FY${ov.from}`; renderOverview(); });
+$('#ovRangeLbl').textContent = 'from FY1948';
+const GB_TITLES = ['Military Personnel','Operation and Maintenance','Procurement','RDT&E','Military Construction'];
+const GB_OTHER = ['Retired Pay, Defense','Family Housing','Revolving and Management Funds','Trust, Receipts, and Other','War Outyear Placeholder'];
+function renderTiles(){
+  const t = $('#tiles'); t.innerHTML = '';
+  const omb = MACRO.omb_ba_by_function.rows; const out = MACRO.omb_outlays_by_function.rows; const sh = MACRO.gb_shares; const man = MACRO.gb_manpower;
+  const req27 = {}; for (const ex of EXORDER){ let s = 0; for (let id = 0; id < NID; id++){ if (L.ids[id][F.ex] !== ex) continue; const a = VAL.get(id*10000 + 2027); if (a && a[2] != null) s += a[2]; } req27[ex] = s; }
+  const total27 = Object.values(req27).reduce((a,b) => a+b, 0);
+  const tiles = [
+    ['FY2027 request, four titles', fmtB(total27, 0), 'P-1 + R-1 + O-1 + M-1 exhibits, discretionary plus mandatory', 'Comptroller exhibits'],
+    ['FY2027 national defense BA', fmtM(omb['050 Total, National Defense']['2027'], 0), 'Function 050, OMB estimate', 'OMB Table 5.1'],
+    ['FY2025 national defense outlays', fmtM(out['050 Total, National Defense']['2025'], 0), 'Function 050, actual', 'OMB Table 3.2'],
+    ['Defense share of GDP, FY2023', (sh['2023']['National Defense % of GDP']).toFixed(1) + '%', 'National defense outlays as % of GDP', 'Green Book Table 7-7'],
+    ['Active military, FY2023', (man['2023']['Total active military']/1000).toFixed(2) + 'M', 'End strength; civilians ' + (man['2023']['Total DoD civilians']/1000).toFixed(2) + 'M', 'Green Book Table 7-5'],
+    ['Procurement + RDT&E, FY2027 request', fmtB(req27.p1 + req27.r1, 0), `Procurement ${fmtB(req27.p1,0)} · RDT&E ${fmtB(req27.r1,0)}`, 'P-1 and R-1 exhibits'],
+  ];
+  for (const [l, v, s, src] of tiles){ const d = document.createElement('div'); d.className = 'tile'; d.innerHTML = `<div class="v">${v}</div><div class="l">${l}</div><div class="s">${s} · ${src}</div>`; t.appendChild(d); }
+}
+function renderOverview(){
+  renderTiles();
+  const tbl = MACRO[ov.measure][ov.dollars]; const years = []; for (let y = ov.from; y <= 2027; y++) years.push(y);
+  const S = SERIES();
+  const ds = GB_TITLES.map((t, i) => areaDataset(t, years.map(y => tbl[t]?.[y] ?? null), S[i]));
+  ds.push(areaDataset('Other (retired pay, family housing, revolving funds, receipts)', years.map(y => GB_OTHER.reduce((s, t) => s + (tbl[t]?.[y] ?? 0), 0)), OTHER()));
+  $('#ovTitleSub').textContent = `${{gb_ba_by_title:'Budget authority', gb_toa_by_title:'Total obligational authority', gb_outlays_by_title:'Outlays'}[ov.measure]}, ${ov.dollars === 'current' ? 'current dollars' : 'constant FY2023 dollars'}, millions. Hover for every title in a year.`;
+  mkChart('chOvTitle', {type:'line', data:{labels: years, datasets: ds}, options:{plugins:{tooltip:{callbacks:{label: c => ` ${c.dataset.label}: ${fmtM(c.raw, 1)}`, footer: items => 'Total ' + fmtM(items.reduce((s, i) => s + (i.raw || 0), 0), 1)}}}, scales:{x:{grid:{display:false}, ticks:{maxTicksLimit:12}}, y:{stacked:true, ticks:{callback: moneyTick(false), maxTicksLimit:7}}}}});
+  // by dept
+  const dept = MACRO.gb_ba_by_dept.current; const dnames = ['Army','Navy','Air Force','Defense-Wide'];
+  mkChart('chOvDept', {type:'line', data:{labels: years, datasets: dnames.map((d, i) => areaDataset(d, years.map(y => dept[d]?.[y] ?? null), S[i]))}, options:{plugins:{tooltip:{callbacks:{label: c => ` ${c.dataset.label}: ${fmtM(c.raw,1)}`}}}, scales:{x:{grid:{display:false}, ticks:{maxTicksLimit:12}}, y:{stacked:true, ticks:{callback: moneyTick(false), maxTicksLimit:7}}}}});
+  // manpower
+  const man = MACRO.gb_manpower; const my = Object.keys(man).map(Number).filter(y => y >= Math.max(1940, ov.from)).sort();
+  const mser = ['Army','Navy','Marine Corps','Air Force','Space Force','Total DoD civilians'];
+  mkChart('chOvMan', {type:'line', data:{labels: my, datasets: mser.map((s, i) => areaDataset(s === 'Total DoD civilians' ? 'Civilians' : s, my.map(y => man[y][s] ?? null), i === 5 ? OTHER() : S[i]))}, options:{plugins:{tooltip:{callbacks:{label: c => ` ${c.dataset.label}: ${(c.raw ?? 0).toLocaleString()}K`}}}, scales:{x:{grid:{display:false}, ticks:{maxTicksLimit:12}}, y:{stacked:true, ticks:{callback: v => (v/1000).toFixed(v >= 1000 ? 0 : 1) + 'M', maxTicksLimit:7}}}}});
+  renderOmb();
+}
+function renderOmb(){
+  const S = SERIES(); const ba = MACRO.omb_ba_by_function, out = MACRO.omb_outlays_by_function, gdp = MACRO.omb_gdp;
+  const src = ov.omb === 'ba' ? ba : out; const years = src.years.filter(y => y >= Math.max(1962, ov.from)); const est = src.estimates_from;
+  let datasets, fmt;
+  if (ov.omb === 'gdp'){ datasets = [lineDataset('National defense outlays, % of GDP', years.map(y => out.rows['050 Total, National Defense'][y] != null && gdp[y] ? out.rows['050 Total, National Defense'][y] / (gdp[y].gdp_bn*1000) * 100 : null), S[0])]; fmt = v => v.toFixed(1) + '%'; }
+  else if (ov.omb === 'fed'){ datasets = [lineDataset('National defense, % of all federal outlays', years.map(y => out.rows['050 Total, National Defense'][y] != null ? out.rows['050 Total, National Defense'][y] / out.rows['Total, all functions'][y] * 100 : null), S[0])]; fmt = v => v.toFixed(1) + '%'; }
+  else { const rows = src.rows; const names = ['051 Military Personnel','051 Operation and Maintenance','051 Procurement','051 Research, Development, Test, and Evaluation','051 Military Construction','051 Family Housing','051 Other']; const keep = names.slice(0,5); datasets = keep.map((n, i) => areaDataset(n.replace('051 ','').replace('Research, Development, Test, and Evaluation','RDT&E'), years.map(y => rows[n]?.[y] ?? null), S[i])); datasets.push(areaDataset('Other DoD (051)', years.map(y => (rows['051 Family Housing']?.[y] ?? 0) + (rows['051 Other']?.[y] ?? 0)), OTHER())); datasets.push(areaDataset('Atomic energy & defense-related (053/054)', years.map(y => (rows['053 Atomic energy defense activities']?.[y] ?? 0) + (rows['054 Defense-related activities']?.[y] ?? 0)), S[6])); fmt = moneyTick(false); }
+  const shade = {id:'estShade', beforeDraw(chart){ const {ctx, chartArea, scales} = chart; const i = years.indexOf(est); if (i < 0) return; const x = scales.x.getPixelForValue(i - 0.5); ctx.save(); ctx.fillStyle = css('--surface-2'); ctx.globalAlpha = 0.7; ctx.fillRect(x, chartArea.top, chartArea.right - x, chartArea.bottom - chartArea.top); ctx.restore(); }};
+  mkChart('chOvOmb', {type:'line', data:{labels: years, datasets}, plugins:[shade], options:{plugins:{tooltip:{callbacks:{label: c => ` ${c.dataset.label}: ${ov.omb === 'gdp' || ov.omb === 'fed' ? c.raw.toFixed(2) + '%' : fmtM(c.raw,1)}`, footer: items => (items[0].label >= est ? 'OMB estimate' : '')}}}, scales:{x:{grid:{display:false}, ticks:{maxTicksLimit:12}}, y:{stacked: ov.omb === 'ba' || ov.omb === 'out', ticks:{callback: fmt, maxTicksLimit:7}, beginAtZero:true}}}});
+}
+RENDER.overview = renderOverview;
+
+// ===================== EXPLORER =====================
+const ex = {fy:2027, mode:'best', dollars:'current', ex:'', org:'', win:27, path:[]};
+const LEVELS = ['ex','org','acct','ba','line'];
+const LEVEL_LABEL = {ex:'Appropriation title', org:'Organization', acct:'Account', ba:'Budget activity', line:'Line item'};
+const LEVEL_PLURAL = {ex:'appropriation titles', org:'organizations', acct:'accounts', ba:'budget activities', line:'line items'};
+function idLabel(id, level){ const r = L.ids[id]; switch(level){ case 'ex': return EXNAME[r[F.ex]]; case 'org': return r[F.org]; case 'acct': return r[F.acct_title] + ' (' + r[F.acct] + ')'; case 'ba': return r[F.ba_title] || '(no budget activity)'; case 'line': return (r[F.line_title] || '(untitled)') + (r[F.line] ? ' · ' + r[F.line] : ''); } }
+function idMatches(id, path){ for (const p of path){ if (idLabel(id, p.level) !== p.value) return false; } return true; }
+function exFiltered(){ const out = []; for (let id = 0; id < NID; id++){ const r = L.ids[id]; if (ex.ex && r[F.ex] !== ex.ex) continue; if (ex.org && r[F.org] !== ex.org) continue; if (!idMatches(id, ex.path)) continue; out.push(id); } return out; }
+function nextLevel(path){ const used = new Set(path.map(p => p.level)); if (ex.ex) used.add('ex'); if (ex.org) used.add('org'); for (const l of LEVELS) if (!used.has(l)) return l; return null; }
+function groupSum(ids, level, fy, mode, constant, valmap=VAL){ const g = new Map(); for (const id of ids){ const [v, s] = pick(valmap.get(id*10000 + fy), mode, fy); if (v == null) continue; const k = idLabel(id, level); let o = g.get(k); if (!o){ o = {name:k, v:0, stages:new Set(), n:0}; g.set(k, o); } o.v += defl(v, fy, constant); o.stages.add(s); o.n++; } return Array.from(g.values()); }
+$('#exFy').addEventListener('input', e => { ex.fy = +e.target.value; renderExplorer(); });
+$('#exMode').addEventListener('change', e => { ex.mode = e.target.value; renderExplorer(); });
+seg('exDollars', v => { ex.dollars = v; renderExplorer(); });
+$('#exEx').addEventListener('change', e => { ex.ex = e.target.value; ex.path = ex.path.filter(p => p.level !== 'ex'); renderExplorer(); });
+$('#exOrg').addEventListener('change', e => { ex.org = e.target.value; ex.path = ex.path.filter(p => p.level !== 'org'); renderExplorer(); });
+$('#exWin').addEventListener('change', e => { ex.win = +e.target.value; renderExplorer(); });
+let exTableRows = [];
+function renderExplorer(){
+  $('#exFyLbl').textContent = 'FY' + ex.fy; const constant = ex.dollars === 'constant'; const S = SERIES();
+  const ids = exFiltered(); const level = nextLevel(ex.path);
+  // crumbs
+  const cr = $('#exCrumbs'); cr.innerHTML = ''; const root = document.createElement('button'); root.textContent = ex.ex ? EXNAME[ex.ex] : 'All titles'; root.className = ex.path.length ? '' : 'cur'; root.addEventListener('click', () => { ex.path = []; renderExplorer(); }); cr.appendChild(root);
+  ex.path.forEach((p, i) => { const s = document.createElement('span'); s.className = 'sep'; s.textContent = '›'; cr.appendChild(s); const b = document.createElement('button'); b.textContent = p.value; b.className = i === ex.path.length - 1 ? 'cur' : ''; b.addEventListener('click', () => { ex.path = ex.path.slice(0, i+1); renderExplorer(); }); cr.appendChild(b); });
+  if (!level){ cr.insertAdjacentHTML('beforeend', '<span class="sep">· line-item level</span>'); }
+  const groups = level ? groupSum(ids, level, ex.fy, ex.mode, constant) : groupSum(ids, 'line', ex.fy, ex.mode, constant);
+  groups.sort((a,b) => b.v - a.v); const total = groups.reduce((s,g) => s + g.v, 0);
+  const top = groups.slice(0, 20); const rest = groups.slice(20); const labels = top.map(g => g.name), vals = top.map(g => g.v); if (rest.length){ labels.push(`Other (${rest.length} more)`); vals.push(rest.reduce((s,g) => s + g.v, 0)); }
+  const colors = labels.map((_, i) => i < top.length ? S[0] : OTHER());
+  $('#exBarTitle').textContent = level ? `By ${LEVEL_LABEL[level].toLowerCase()}, FY${ex.fy}` : `Line items, FY${ex.fy}`;
+  const stagesUsed = new Set(); groups.forEach(g => g.stages.forEach(s => stagesUsed.add(s)));
+  $('#exBarSub').innerHTML = `Total ${fmtB(total, 1)} across ${groups.length} ${level ? LEVEL_PLURAL[level] : 'line items'} · values from ${Array.from(stagesUsed).filter(s => s != null).map(s => pillHtml(s)).join(' ') || 'no vintage'} · ${constant ? 'constant FY2027 $' : 'current $'}`;
+  hbar('chExBar', labels, vals, colors, v => fmtB(v, 1), i => { if (i < top.length && level) { ex.path.push({level, value: top[i].name}); renderExplorer(); } }, {share: vals.map(v => v / total)});
+  // time series: top 8 groups over window
+  const y0 = Math.max(FY_MIN, FY_MAX - ex.win + 1); const years = []; for (let y = y0; y <= FY_MAX; y++) years.push(y);
+  const tsGroups = groups.slice(0, 8); const other = groups.slice(8);
+  const seriesFor = (names) => years.map(y => { const g = groupSum(ids, level || 'line', y, ex.mode, constant); const set = new Set(names); let s = 0, any = false; for (const o of g) if (set.has(o.name)){ s += o.v; any = true; } return any ? s : null; });
+  const ds = tsGroups.map((g, i) => areaDataset(g.name.length > 40 ? g.name.slice(0, 38) + '…' : g.name, seriesFor([g.name]), S[i]));
+  if (other.length) ds.push(areaDataset(`Other (${other.length})`, seriesFor(other.map(g => g.name)), OTHER()));
+  $('#exTsTitle').textContent = `FY${y0} to FY${FY_MAX}` + (ex.path.length ? ': ' + ex.path[ex.path.length-1].value : '');
+  $('#exTsSub').textContent = `${{best:'Best available vintage per year', 2:'As requested', 1:'As enacted', 0:'Actuals (through FY' + (FY_MAX-2) + ')'}[ex.mode]}; stacked; ${constant ? 'constant FY2027 dollars' : 'current dollars'}. FY${FY_MAX} is the request only.`;
+  mkChart('chExTs', {type:'line', data:{labels: years, datasets: ds}, options:{plugins:{tooltip:{callbacks:{label: c => ` ${c.dataset.label}: ${fmtB(c.raw, 1)}`, footer: items => 'Total ' + fmtB(items.reduce((s, i) => s + (i.raw || 0), 0), 1)}}}, scales:{x:{grid:{display:false}}, y:{stacked:true, ticks:{callback: moneyTick(true), maxTicksLimit:7}}}}});
+  // table
+  const prev = new Map(groupSum(ids, level || 'line', ex.fy - 1, ex.mode, constant).map(g => [g.name, g.v]));
+  const five = new Map(groupSum(ids, level || 'line', ex.fy - 5, ex.mode, constant).map(g => [g.name, g.v]));
+  exTableRows = groups.map(g => ({name: g.name, v: g.v, share: g.v / total, d1: prev.has(g.name) ? g.v - prev.get(g.name) : null, p1: prev.has(g.name) && prev.get(g.name) ? g.v / prev.get(g.name) - 1 : null, cagr: five.has(g.name) && five.get(g.name) > 0 && g.v > 0 ? Math.pow(g.v / five.get(g.name), 1/5) - 1 : null, n: g.n, stage: Array.from(g.stages).filter(s => s != null)}));
+  $('#exTblTitle').textContent = level ? `${LEVEL_LABEL[level]}s in view` : 'Line items in view';
+  $('#exTblSub').textContent = `${exTableRows.length} rows · FY${ex.fy} vs FY${ex.fy-1} and 5-year compound growth from FY${ex.fy-5}`;
+  const tbl = $('#exTable');
+  sortable(tbl, exTableRows, [{key:'name', label: level ? LEVEL_LABEL[level] : 'Line item'}, {key:'v', label:'FY' + ex.fy, num:true}, {key:'share', label:'Share', num:true}, {key:'d1', label:'Change vs FY' + (ex.fy-1), num:true}, {key:'p1', label:'% change', num:true}, {key:'cagr', label:'5-yr CAGR', num:true}, {key:'n', label:'Lines', num:true}],
+    (tb, rows) => { for (const r of rows){ const tr = document.createElement('tr'); if (level){ tr.className = 'click'; tr.addEventListener('click', () => { ex.path.push({level, value: r.name}); renderExplorer(); }); } td(tr, null, 'name', `${esc(r.name)}${r.stage.map(pillHtml).join('')}`); td(tr, fmtB(r.v, 1), 'num'); td(tr, (r.share*100).toFixed(1) + '%', 'num'); td(tr, null, 'num', deltaHtml(r.d1, v => fmtB(v,1))); td(tr, fmtPct(r.p1), 'num'); td(tr, fmtPct(r.cagr), 'num'); td(tr, String(r.n), 'num'); tb.appendChild(tr); } });
+}
+$('#exCsv').addEventListener('click', () => dl(`explorer_FY${ex.fy}_${ex.mode}.csv`, [csvRow(['name', `fy${ex.fy}_thousands`, 'share', 'change_vs_prior', 'pct_change', 'cagr_5yr', 'lines', 'stage']), ...exTableRows.map(r => csvRow([r.name, Math.round(r.v), r.share.toFixed(4), r.d1 == null ? '' : Math.round(r.d1), r.p1 == null ? '' : r.p1.toFixed(4), r.cagr == null ? '' : r.cagr.toFixed(4), r.n, r.stage.map(s => STAGE_NAME[s]).join('|')]))].join('\n')));
+RENDER.explorer = renderExplorer;
+
+// ===================== VINTAGE =====================
+const vt = {fy: 2024, level:'acct', ex:'', sort:'dER', abs:'abs'};
+{ const sel = $('#vFy'); for (let y = FY_MAX - 2; y >= FY_MIN; y--){ const o = document.createElement('option'); o.value = y; o.textContent = 'FY' + y; sel.appendChild(o); } sel.value = vt.fy; }
+$('#vFy').addEventListener('change', e => { vt.fy = +e.target.value; renderVintage(); });
+$('#vLevel').addEventListener('change', e => { vt.level = e.target.value; renderVintage(); });
+$('#vEx').addEventListener('change', e => { vt.ex = e.target.value; renderVintage(); });
+$('#vSort').addEventListener('change', e => { vt.sort = e.target.value; renderVintage(); });
+seg('vAbs', v => { vt.abs = v; renderVintage(); });
+const CR_YEARS = {2013:'PB2014', 2017:'PB2018', 2018:'PB2019', 2024:'PB2025'};
+let vRows = [];
+function renderVintage(){
+  const S = SERIES(); const fy = vt.fy; const g = new Map();
+  for (let id = 0; id < NID; id++){ const r = L.ids[id]; if (vt.ex && r[F.ex] !== vt.ex) continue; const a = VAL.get(id*10000 + fy); if (!a) continue; const k = idLabel(id, vt.level); let o = g.get(k); if (!o){ o = {name:k, req:null, en:null, act:null}; g.set(k, o); } if (a[2] != null) o.req = (o.req ?? 0) + a[2]; if (a[1] != null) o.en = (o.en ?? 0) + a[1]; if (a[0] != null) o.act = (o.act ?? 0) + a[0]; }
+  vRows = Array.from(g.values()).map(o => ({...o, dER: o.en != null && o.req != null ? o.en - o.req : null, dAE: o.act != null && o.en != null ? o.act - o.en : null, dAR: o.act != null && o.req != null ? o.act - o.req : null, pER: o.en != null && o.req ? o.en / o.req - 1 : null, pAE: o.act != null && o.en ? o.act / o.en - 1 : null, pAR: o.act != null && o.req ? o.act / o.req - 1 : null}));
+  const tot = {req: vRows.reduce((s,r) => s + (r.req ?? 0), 0), en: vRows.reduce((s,r) => s + (r.en ?? 0), 0), act: vRows.reduce((s,r) => s + (r.act ?? 0), 0)};
+  const haveEn = vRows.some(r => r.en != null), haveAct = vRows.some(r => r.act != null);
+  const tiles = $('#vTiles'); tiles.innerHTML = '';
+  for (const [l, v, s] of [[`FY${fy} request (PB${fy})`, fmtB(tot.req, 1), 'sum of the four exhibits'], [`FY${fy} enacted (PB${fy+1})`, haveEn ? fmtB(tot.en, 1) : 'not yet published', haveEn ? deltaHtml(tot.en - tot.req, v => fmtB(v,1)) + ' vs request' : ''], [`FY${fy} actual (PB${fy+2})`, haveAct ? fmtB(tot.act, 1) : 'not yet published', haveAct ? deltaHtml(tot.act - tot.en, v => fmtB(v,1)) + ' vs enacted' : ''], ['Rows at this level', String(vRows.length), LEVEL_PLURAL[vt.level] + ' with any value in FY' + fy]]){ const d = document.createElement('div'); d.className = 'tile'; d.innerHTML = `<div class="v">${v}</div><div class="l">${l}</div><div class="s">${s}</div>`; tiles.appendChild(d); }
+  const key = vt.sort; const pkey = key === 'req' ? null : 'p' + key.slice(1);
+  const ranked = vRows.filter(r => key === 'req' ? r.req != null : r[key] != null).sort((a,b) => vt.abs === 'pct' && pkey ? Math.abs(b[pkey]) - Math.abs(a[pkey]) : Math.abs(b[key]) - Math.abs(a[key]));
+  const top = ranked.slice(0, 15);
+  $('#vChartSub').textContent = `Top ${top.length} ${LEVEL_PLURAL[vt.level]} by ${vt.abs === 'pct' ? 'percent' : 'dollar'} ${ {dER:'change from request to enacted', dAE:'change from enacted to actual', dAR:'change from request to actual', req:'request size'}[key] }`;
+  mkChart('chVint', {type:'bar', data:{labels: top.map(r => r.name.length > 44 ? r.name.slice(0,42) + '…' : r.name), datasets:[{label:'Request', data: top.map(r => r.req), backgroundColor: S[3]}, {label:'Enacted', data: top.map(r => r.en), backgroundColor: S[0]}, {label:'Actual', data: top.map(r => r.act), backgroundColor: S[2]}].map(d => ({...d, borderWidth:0, borderRadius:2, barPercentage:0.9, categoryPercentage:0.8}))},
+    options:{indexAxis:'y', interaction:{mode:'index', axis:'y', intersect:false}, plugins:{tooltip:{callbacks:{label: c => ` ${c.dataset.label}: ${fmtB(c.raw,1)}`}}}, scales:{x:{ticks:{callback: moneyTick(true), maxTicksLimit:6}}, y:{grid:{display:false}, ticks:{autoSkip:false, font:{size:11}}}}}});
+  const pts = vRows.filter(r => r.req != null && r.en != null && r.req > 0 && r.en > 0);
+  const maxv = Math.max(1, ...pts.map(r => Math.max(r.req, r.en)));
+  mkChart('chVintScatter', {type:'scatter', data:{datasets:[{label:'Enacted vs. request', data: pts.map(r => ({x:r.req, y:r.en, name:r.name})), backgroundColor: S[0] + 'AA', borderColor: S[0], pointRadius: 4, pointHoverRadius: 6, pointHitRadius: 12}, {label:'Enacted = request', type:'line', data:[{x:1, y:1}, {x:maxv, y:maxv}], borderColor: css('--muted'), borderDash:[4,4], borderWidth:1, pointRadius:0, fill:false}]},
+    options:{interaction:{mode:'nearest', intersect:true}, plugins:{tooltip:{callbacks:{title: items => items[0].raw.name || '', label: c => c.raw.name ? ` request ${fmtB(c.raw.x,1)} → enacted ${fmtB(c.raw.y,1)} (${fmtPct(c.raw.y/c.raw.x-1)})` : ''}}}, scales:{x:{type:'logarithmic', title:{display:true, text:'Requested (log scale)'}, ticks:{callback: moneyTick(true), maxTicksLimit:6}}, y:{type:'logarithmic', title:{display:true, text:'Enacted (log scale)'}, ticks:{callback: moneyTick(true), maxTicksLimit:6}}}}});
+  $('#vTblSub').textContent = `${vRows.length} ${LEVEL_PLURAL[vt.level]} · thousands of dollars in the source, shown as millions and billions`;
+  sortable($('#vTable'), vRows, [{key:'name', label: LEVEL_LABEL[vt.level]}, {key:'req', label:'Request', num:true}, {key:'en', label:'Enacted', num:true}, {key:'act', label:'Actual', num:true}, {key:'dER', label:'Enacted − request', num:true}, {key:'pER', label:'%', num:true}, {key:'dAE', label:'Actual − enacted', num:true}, {key:'pAE', label:'%', num:true}],
+    (tb, rows) => { for (const r of rows){ const tr = document.createElement('tr'); td(tr, r.name, 'name'); td(tr, fmtB(r.req,1), 'num'); td(tr, fmtB(r.en,1), 'num'); td(tr, fmtB(r.act,1), 'num'); td(tr, null, 'num', deltaHtml(r.dER, v => fmtB(v,1))); td(tr, fmtPct(r.pER), 'num'); td(tr, null, 'num', deltaHtml(r.dAE, v => fmtB(v,1))); td(tr, fmtPct(r.pAE), 'num'); tb.appendChild(tr); } });
+  $('#vNote').innerHTML = `<b>Reading this view.</b> "Request" is the FY${fy} column of the FY${fy} President's Budget; "enacted" is the FY${fy} column of the FY${fy+1} budget; "actual" is the FY${fy} column of the FY${fy+2} budget. ${CR_YEARS[fy] ? `<b>Caution:</b> in ${CR_YEARS[fy]} the FY${fy} column was the request adjusted for a continuing resolution, not an enacted appropriation, because the appropriation had not passed when the budget went to print.` : ''} Lines that appear in one vintage and not another (new starts, terminations, re-numbered program elements) show as blanks rather than zeros. Supplemental and OCO funding is included wherever the exhibit carried a total column.`;
+}
+$('#vCsv').addEventListener('click', () => dl(`vintages_FY${vt.fy}_${vt.level}.csv`, [csvRow(['name','request_k','enacted_k','actual_k','enacted_minus_request_k','pct','actual_minus_enacted_k','pct']), ...vRows.map(r => csvRow([r.name, r.req, r.en, r.act, r.dER, r.pER?.toFixed(4), r.dAE, r.pAE?.toFixed(4)]))].join('\n')));
+RENDER.vintage = renderVintage;
+
+// ===================== SEARCH =====================
+const sr = {q:'', mode:'best', dollars:'current'};
+const CHIPS = ['F-35', 'Javelin', 'Columbia', 'hypersonic', 'Patriot', 'Artificial Intelligence', 'Virginia Class', 'B-21', 'Sentinel', 'Space Based', 'Counter-UAS', 'Basic Research', 'Facilities Sustainment'];
+{ const c = $('#sChips'); for (const q of CHIPS){ const b = document.createElement('button'); b.textContent = q; b.addEventListener('click', () => { $('#sQ').value = q; sr.q = q; renderSearch(); }); c.appendChild(b); } }
+let sTimer; $('#sQ').addEventListener('input', e => { clearTimeout(sTimer); sTimer = setTimeout(() => { sr.q = e.target.value.trim(); renderSearch(); }, 180); });
+$('#sMode').addEventListener('change', e => { sr.mode = e.target.value; renderSearch(); });
+seg('sDollars', v => { sr.dollars = v; renderSearch(); });
+let sRows = [];
+function renderSearch(){
+  const S = SERIES(); const constant = sr.dollars === 'constant'; const q = sr.q.toLowerCase();
+  const years = []; for (let y = FY_MIN; y <= FY_MAX; y++) years.push(y);
+  if (!q){ $('#sChartSub').textContent = 'Type a program, system or program element above, or pick an example.'; $('#sBarSub').textContent = ''; $('#sTblSub').textContent = ''; $('#sTable').innerHTML = '<tbody><tr><td class="empty">No search yet.</td></tr></tbody>'; if (CH.chSearch) CH.chSearch.destroy(); if (CH.chSearchBar) CH.chSearchBar.destroy(); CH.chSearch = CH.chSearchBar = null; return; }
+  const terms = q.split(/\s+/).filter(Boolean);
+  const hits = [];
+  for (let id = 0; id < NID; id++){ const r = L.ids[id]; const hay = (r[F.line_title] + ' ' + r[F.line] + ' ' + r[F.acct_title] + ' ' + r[F.sub_title]).toLowerCase(); if (terms.every(t => hay.includes(t))){ const ser = years.map(y => { const [v] = pick(VAL.get(id*10000 + y), sr.mode, y); return v == null ? null : defl(v, y, constant); }); const tot = ser.reduce((s, v) => s + (v || 0), 0); let last = null, lastFy = null; for (let i = years.length - 1; i >= 0; i--) if (ser[i] != null){ last = ser[i]; lastFy = years[i]; break; } hits.push({id, r, ser, tot, last, lastFy, first: years[ser.findIndex(v => v != null)]}); } }
+  hits.sort((a,b) => b.tot - a.tot);
+  sRows = hits;
+  const top = hits.slice(0, 8);
+  $('#sChartSub').textContent = hits.length ? `${hits.length} matching lines; the ${top.length} largest by cumulative dollars are charted. ${ {best:'Best available vintage', 2:'As requested', 1:'As enacted', 0:'Actuals'}[sr.mode] }, ${constant ? 'constant FY2027 dollars' : 'current dollars'}.` : 'No lines match.';
+  mkChart('chSearch', {type:'line', data:{labels: years, datasets: top.map((h, i) => lineDataset(`${h.r[F.line_title]} · ${h.r[F.org]} · ${h.r[F.ex].toUpperCase()}`.slice(0, 70), h.ser, S[i]))}, options:{plugins:{legend:{labels:{font:{size:11}}}, tooltip:{callbacks:{label: c => ` ${c.dataset.label}: ${fmtB(c.raw,1)}`}}}, scales:{x:{grid:{display:false}}, y:{ticks:{callback: moneyTick(true), maxTicksLimit:7}, beginAtZero:true}}}});
+  // bar: latest FY with any value among hits, grouped by account
+  const latestFy = Math.max(...hits.map(h => h.lastFy || 0));
+  const byAcct = new Map(); for (const h of hits){ const i = years.indexOf(latestFy); const v = h.ser[i]; if (v == null) continue; const k = `${h.r[F.acct_title]} · ${h.r[F.org]}`; byAcct.set(k, (byAcct.get(k) || 0) + v); }
+  const acc = Array.from(byAcct.entries()).sort((a,b) => b[1] - a[1]).slice(0, 15);
+  $('#sBarSub').textContent = hits.length ? `FY${latestFy}, by appropriation account, all matching lines` : '';
+  hbar('chSearchBar', acc.map(a => a[0]), acc.map(a => a[1]), acc.map(() => S[0]), v => fmtB(v,1), null);
+  $('#sTblSub').textContent = `${hits.length} lines · last six fiscal years shown`;
+  const showYears = years.slice(-6);
+  sortable($('#sTable'), hits.map(h => ({name: h.r[F.line_title], code: h.r[F.line], acct: h.r[F.acct_title], org: h.r[F.org], ex: h.r[F.ex].toUpperCase(), span: `${h.first}–${h.lastFy}`, tot: h.tot, ...Object.fromEntries(showYears.map(y => ['y' + y, h.ser[years.indexOf(y)]]))})),
+    [{key:'name', label:'Line item'}, {key:'code', label:'Code'}, {key:'acct', label:'Account'}, {key:'org', label:'Org'}, {key:'ex', label:'Exh.'}, {key:'span', label:'Years'}, ...showYears.map(y => ({key:'y' + y, label:'FY' + y, num:true})), {key:'tot', label:'Cumulative', num:true}],
+    (tb, rows) => { for (const r of rows){ const tr = document.createElement('tr'); td(tr, r.name, 'name'); td(tr, r.code); td(tr, r.acct); td(tr, r.org); td(tr, r.ex); td(tr, r.span); for (const y of showYears) td(tr, fmtB(r['y' + y], 1), 'num'); td(tr, fmtB(r.tot, 1), 'num'); tb.appendChild(tr); } });
+}
+$('#sCsv').addEventListener('click', () => { const years = []; for (let y = FY_MIN; y <= FY_MAX; y++) years.push(y); dl(`search_${sr.q.replace(/\W+/g,'_')}.csv`, [csvRow(['line_title','code','account','organization','exhibit', ...years.map(y => 'fy' + y + '_k')]), ...sRows.map(h => csvRow([h.r[F.line_title], h.r[F.line], h.r[F.acct_title], h.r[F.org], h.r[F.ex], ...h.ser.map(v => v == null ? '' : Math.round(v))]))].join('\n')); });
+RENDER.search = renderSearch;
+
+// ===================== MILCON =====================
+const mc = {fy:2027, mode:'best', org:'', scope:'all', path:[]};
+const US_STATES = new Set(['AL','AK','AZ','AR','CA','CO','CT','DE','FL','GA','HI','ID','IL','IN','IA','KS','KY','LA','ME','MD','MA','MI','MN','MS','MO','MT','NE','NV','NH','NJ','NM','NY','NC','ND','OH','OK','OR','PA','RI','SC','SD','TN','TX','UT','VT','VA','WA','WV','WI','WY','DC','PR','GU','VI','AS','MP']);
+$('#mFy').addEventListener('input', e => { mc.fy = +e.target.value; renderMilcon(); });
+$('#mMode').addEventListener('change', e => { mc.mode = e.target.value; renderMilcon(); });
+$('#mOrg').addEventListener('change', e => { mc.org = e.target.value; renderMilcon(); });
+seg('mScope', v => { mc.scope = v; mc.path = []; renderMilcon(); });
+const MLEVELS = ['place','loc','proj'];
+function mLabel(id, level){ const r = M.ids[id]; if (level === 'place') return r[MF.state_title] || r[MF.state] || '(unspecified)'; if (level === 'loc') return r[MF.loc] || '(unspecified location)'; return (r[MF.proj] || '(untitled project)') + ' · ' + r[MF.acct_title]; }
+let mRows = [];
+function renderMilcon(){
+  $('#mFyLbl').textContent = 'FY' + mc.fy; const S = SERIES();
+  const ids = []; for (let id = 0; id < M.ids.length; id++){ const r = M.ids[id]; if (mc.org && r[MF.org] !== mc.org) continue; const us = US_STATES.has(r[MF.state]); if (mc.scope === 'us' && !us) continue; if (mc.scope === 'abroad' && us) continue; let ok = true; for (const p of mc.path) if (mLabel(id, p.level) !== p.value){ ok = false; break; } if (ok) ids.push(id); }
+  const level = MLEVELS[mc.path.length] || 'proj';
+  const cr = $('#mCrumbs'); cr.innerHTML = ''; const root = document.createElement('button'); root.textContent = {all:'All places', us:'US states and territories', abroad:'Overseas'}[mc.scope]; root.className = mc.path.length ? '' : 'cur'; root.addEventListener('click', () => { mc.path = []; renderMilcon(); }); cr.appendChild(root);
+  mc.path.forEach((p, i) => { const s = document.createElement('span'); s.className = 'sep'; s.textContent = '›'; cr.appendChild(s); const b = document.createElement('button'); b.textContent = p.value; b.className = i === mc.path.length-1 ? 'cur' : ''; b.addEventListener('click', () => { mc.path = mc.path.slice(0, i+1); renderMilcon(); }); cr.appendChild(b); });
+  const grp = (fy) => { const g = new Map(); for (const id of ids){ const [v, s] = pick(MVAL.get(id*10000 + fy), mc.mode, fy, MBEST_STAGE); if (v == null) continue; const k = mLabel(id, level); let o = g.get(k); if (!o){ o = {name:k, v:0, n:0, stages:new Set()}; g.set(k, o); } o.v += v; o.n++; o.stages.add(s); } return Array.from(g.values()).sort((a,b) => b.v - a.v); };
+  const groups = grp(mc.fy); const total = groups.reduce((s,g) => s + g.v, 0);
+  const top = groups.slice(0, 25); const labels = top.map(g => g.name), vals = top.map(g => g.v); if (groups.length > 25){ labels.push(`Other (${groups.length - 25})`); vals.push(groups.slice(25).reduce((s,g) => s + g.v, 0)); }
+  $('#mBarTitle').textContent = {place:'Appropriations by state or country', loc:'By installation', proj:'By project'}[level] + `, FY${mc.fy}`;
+  $('#mBarSub').innerHTML = `Total ${fmtB(total,1)} across ${groups.length} ${ {place:'places', loc:'installations', proj:'projects'}[level] } · ${Array.from(new Set(groups.flatMap(g => Array.from(g.stages)))).filter(s => s != null).map(pillHtml).join(' ')}`;
+  hbar('chMil', labels, vals, labels.map((_, i) => i < top.length ? S[2] : OTHER()), v => fmtB(v,1), i => { if (i < top.length && level !== 'proj'){ mc.path.push({level, value: top[i].name}); renderMilcon(); } }, {share: vals.map(v => v/total)});
+  const years = []; for (let y = 2003; y <= 2027; y++) years.push(y);
+  const tsTop = groups.slice(0, 6); const ds = tsTop.map((g, i) => areaDataset(g.name, years.map(y => { const r = grp(y).find(x => x.name === g.name); return r ? r.v : null; }), S[i]));
+  ds.push(areaDataset('All other', years.map(y => { const all = grp(y); const set = new Set(tsTop.map(g => g.name)); const s = all.filter(x => !set.has(x.name)).reduce((a,b) => a + b.v, 0); return all.length ? s : null; }), OTHER()));
+  $('#mTsSub').textContent = `FY2003 to FY2027, stacked, ${ {best:'best available vintage', 2:'as requested', 1:'as enacted', 0:'actuals'}[mc.mode] }; top six ${ {place:'places', loc:'installations', proj:'projects'}[level] } of FY${mc.fy} plus all others`;
+  mkChart('chMilTs', {type:'line', data:{labels: years, datasets: ds}, options:{plugins:{tooltip:{callbacks:{label: c => ` ${c.dataset.label}: ${fmtB(c.raw,1)}`, footer: items => 'Total ' + fmtB(items.reduce((s,i) => s + (i.raw||0), 0), 1)}}}, scales:{x:{grid:{display:false}}, y:{stacked:true, ticks:{callback: moneyTick(true), maxTicksLimit:7}}}}});
+  // table: projects in view for selected FY
+  mRows = []; for (const id of ids){ const [v, s] = pick(MVAL.get(id*10000 + mc.fy), mc.mode, mc.fy, MBEST_STAGE); if (v == null) continue; const r = M.ids[id]; mRows.push({place: r[MF.state_title] || r[MF.state], loc: r[MF.loc], proj: r[MF.proj], cat: r[MF.cat], acct: r[MF.acct_title], org: r[MF.org], ba: r[MF.ba_title], v, s}); }
+  $('#mTblTitle').textContent = `Projects funded in FY${mc.fy}` + (mc.path.length ? ': ' + mc.path.map(p => p.value).join(' › ') : '');
+  $('#mTblSub').textContent = `${mRows.length} projects · ${fmtB(mRows.reduce((s,r) => s + r.v, 0), 1)}`;
+  sortable($('#mTable'), mRows, [{key:'place', label:'State / country'}, {key:'loc', label:'Installation'}, {key:'proj', label:'Project'}, {key:'cat', label:'Facility category'}, {key:'acct', label:'Account'}, {key:'org', label:'Org'}, {key:'v', label:'FY' + mc.fy, num:true}],
+    (tb, rows) => { for (const r of rows){ const tr = document.createElement('tr'); td(tr, r.place); td(tr, r.loc); td(tr, r.proj, 'name'); td(tr, r.cat); td(tr, r.acct); td(tr, r.org); td(tr, null, 'num', fmtB(r.v,1) + pillHtml(r.s)); tb.appendChild(tr); } });
+}
+$('#mCsv').addEventListener('click', () => dl(`milcon_FY${mc.fy}.csv`, [csvRow(['place','installation','project','facility_category','account','organization','budget_activity','amount_k','stage']), ...mRows.map(r => csvRow([r.place, r.loc, r.proj, r.cat, r.acct, r.org, r.ba, Math.round(r.v), STAGE_NAME[r.s]]))].join('\n')));
+RENDER.milcon = renderMilcon;
+
+
+// ===================== TAXONOMY DEMO =====================
+let TX = null; // {version, dims:[{code,label,definition,rule,items:[{code,label,definition,retired?}]}], assign:{id:[codes...,conf]}, process:{intro_html,panel_html}, stats:{...}}
+const tx = {dim:'B', dim2:'A', fy:2026, mode:'best', dollars:'current', x:'show', sel:null};
+async function loadTaxonomy(){ if (TX !== null) return TX; try { const r = await fetchDataFile('taxonomy.json'); TX = await r.json(); } catch(e){ TX = false; } return TX; }
+seg('txDollars', v => { tx.dollars = v; renderTaxonomy(); }); seg('txX', v => { tx.x = v; renderTaxonomy(); });
+$('#txFy').addEventListener('input', e => { tx.fy = +e.target.value; renderTaxonomy(); });
+$('#txMode').addEventListener('change', e => { tx.mode = e.target.value; renderTaxonomy(); });
+$('#txDim').addEventListener('change', e => { tx.dim = e.target.value; tx.sel = null; if (tx.dim2 === tx.dim) { tx.dim2 = TX.dims.find(d => d.code !== tx.dim).code; $('#txDim2').value = tx.dim2; } renderTaxonomy(); });
+$('#txDim2').addEventListener('change', e => { tx.dim2 = e.target.value; renderTaxonomy(); });
+function txDimIndex(code){ return TX.dims.findIndex(d => d.code === code); }
+function txLabel(dimCode, code){ const d = TX.dims.find(x => x.code === dimCode); const it = d && d.items.find(i => i.code === code); return it ? it.label : (code === 'X' ? 'Unclassifiable (gate)' : code); }
+let txRows = [], txLineRows = [];
+async function renderTaxonomy(){
+  const T = await loadTaxonomy(); const intro = $('#txIntro');
+  if (!T){ intro.innerHTML = '<b>Taxonomy demo not yet published.</b> The classification run has not been attached to this page.'; return; }
+  if (!$('#txDim').options.length){ for (const d of T.dims){ for (const sel of ((d.code === 'BA' || d.code === 'ORG') ? ['#txDim2'] : ['#txDim', '#txDim2'])){ const o = document.createElement('option'); o.value = d.code; o.textContent = `${d.code} · ${d.label}`; $(sel).appendChild(o); } } $('#txDim').value = tx.dim; $('#txDim2').value = tx.dim2; }
+  intro.innerHTML = T.process.intro_html || '';
+  $('#txFyLbl').textContent = 'FY' + tx.fy; const S = SERIES(); const constant = tx.dollars === 'constant';
+  const di = txDimIndex(tx.dim), d2i = txDimIndex(tx.dim2); const dim = T.dims[di], dim2 = T.dims[d2i];
+  const ids = Object.keys(T.assign).map(Number).filter(id => tx.x === 'show' || T.assign[id][di] !== 'X');
+  const labelOf = (id, k) => T.assign[id][k] || 'X';
+  const sumBy = (fy, k) => { const g = new Map(); for (const id of ids){ const [v] = pick(VAL.get(id*10000 + fy), tx.mode, fy); if (v == null) continue; const c = labelOf(id, k); const o = g.get(c) || {code:c, v:0, n:0}; o.v += defl(v, fy, constant); o.n++; g.set(c, o); } return g; };
+  const cur = sumBy(tx.fy, di); const order = dim.items.map(i => i.code).concat(['X']);
+  const rows = order.filter(c => cur.has(c)).map(c => ({code:c, label: txLabel(tx.dim, c), v: cur.get(c).v, n: cur.get(c).n})).sort((a,b) => b.v - a.v);
+  const total = rows.reduce((s,r) => s + r.v, 0); txRows = rows.map(r => ({...r, share: r.v / total}));
+  const st = T.stats || {}; const tiles = $('#txTiles'); tiles.innerHTML = '';
+  const TAXD = T.dims.filter(d => d.code !== 'BA' && d.code !== 'ORG'); for (const [v, l, s2] of [[TAXD.length, 'independent dimensions', TAXD.map(d => d.label).join(' · ')], [TAXD.reduce((s,d) => s + d.items.filter(i => !i.retired).length, 0), 'labels in use', 'one label per dimension per program element; two v1 labels retired and mapped forward'], [(st.classified ?? ids.length).toLocaleString(), 'program elements classified', `${st.unclassifiable ?? '–'} sent to the gate as unclassifiable`], [st.agreement_label ?? '–', 'independent agreement check', st.agreement_note ?? ''], [T.version || 'v2', 'taxonomy version', st.version_note ?? 'one-shot draft, independent critique, one revision']]){ const d = document.createElement('div'); d.className = 'tile'; d.innerHTML = `<div class="v">${v}</div><div class="l">${l}</div><div class="s">${s2}</div>`; tiles.appendChild(d); }
+  $('#txBarTitle').textContent = `${dim.label}, FY${tx.fy}`; $('#txBarSub').innerHTML = `${fmtB(total,1)} of RDT&E across ${rows.length} labels · ${constant ? 'constant FY2027 $' : 'current $'} · ${pillHtml(BEST_STAGE[tx.fy] ?? null)}`;
+  hbar('chTxBar', rows.map(r => r.label), rows.map(r => r.v), rows.map(r => r.code === 'X' ? OTHER() : (r.code === tx.sel ? S[1] : S[0])), v => fmtB(v,1), i => { tx.sel = rows[i].code; renderTaxonomy(); }, {share: rows.map(r => r.v / total)});
+  const years = []; for (let y = FY_MIN; y <= FY_MAX; y++) years.push(y);
+  const series = years.map(y => sumBy(y, di)); const top = rows.slice(0, 8).map(r => r.code); const rest = rows.slice(8).map(r => r.code);
+  const ds = top.map((c, i) => areaDataset(txLabel(tx.dim, c), series.map(g => g.has(c) ? g.get(c).v : null), c === 'X' ? OTHER() : S[i]));
+  if (rest.length) ds.push(areaDataset(`Other (${rest.length} labels)`, series.map(g => { let s = 0, any = false; for (const c of rest) if (g.has(c)){ s += g.get(c).v; any = true; } return any ? s : null; }), OTHER()));
+  $('#txTsTitle').textContent = `${dim.label}, FY${FY_MIN} to FY${FY_MAX}`; $('#txTsSub').textContent = 'Stacked; best available vintage per year unless another stage is selected. Labels follow the classification of each program element, which is fixed across years.';
+  mkChart('chTxTs', {type:'line', data:{labels: years, datasets: ds}, options:{plugins:{legend:{labels:{font:{size:11}}}, tooltip:{callbacks:{label: c => ` ${c.dataset.label}: ${fmtB(c.raw,1)}`, footer: items => 'Total ' + fmtB(items.reduce((s,i) => s + (i.raw||0), 0), 1)}}}, scales:{x:{grid:{display:false}}, y:{stacked:true, ticks:{callback: moneyTick(true), maxTicksLimit:7}}}}});
+  const xt = new Map(); let maxCell = 0; const rowCodes = rows.map(r => r.code); const colSet = new Map();
+  for (const id of ids){ const [v] = pick(VAL.get(id*10000 + tx.fy), tx.mode, tx.fy); if (v == null) continue; const a = labelOf(id, di), b = labelOf(id, d2i); const k = a + '|' + b; const dv = defl(v, tx.fy, constant); xt.set(k, (xt.get(k) || 0) + dv); colSet.set(b, (colSet.get(b) || 0) + dv); }
+  const colCodes = Array.from(colSet.entries()).sort((a,b) => b[1] - a[1]).map(e => e[0]); for (const v of xt.values()) maxCell = Math.max(maxCell, v);
+  $('#txXtabTitle').textContent = `${dim.label} × ${dim2.label}, FY${tx.fy}`; $('#txXtabSub').textContent = `Rows: ${dim.label}. Columns: ${dim2.label}. Cells in billions of dollars.`;
+  const xtab = $('#txXtab'); xtab.innerHTML = ''; const th = document.createElement('thead'); const htr = document.createElement('tr'); htr.appendChild(document.createElement('th')); for (const c of colCodes){ const e = document.createElement('th'); e.className = 'num'; e.textContent = txLabel(tx.dim2, c); e.style.cssText = 'cursor:default;max-width:110px;white-space:normal;font-size:10px'; htr.appendChild(e); } th.appendChild(htr); xtab.appendChild(th);
+  const tb = document.createElement('tbody'); const accent = css('--s1');
+  for (const rc of rowCodes){ const tr = document.createElement('tr'); td(tr, txLabel(tx.dim, rc), 'name'); for (const cc of colCodes){ const v = xt.get(rc + '|' + cc) || 0; const c = td(tr, v ? (v/1e6).toFixed(v >= 1e7 ? 0 : 1) : '', 'num'); if (v){ const a = Math.min(0.85, 0.08 + 0.77 * v / maxCell); c.style.background = accent + Math.round(a*255).toString(16).padStart(2,'0'); if (a > 0.5) c.style.color = '#fff'; } } tb.appendChild(tr); }
+  xtab.appendChild(tb);
+  const prev = sumBy(tx.fy - 1, di);
+  sortable($('#txTable'), txRows.map(r => ({...r, d1: prev.has(r.code) ? r.v - prev.get(r.code).v : null, def: (dim.items.find(i => i.code === r.code) || {}).definition || ''})), [{key:'label', label:'Label'}, {key:'def', label:'Definition'}, {key:'v', label:'FY' + tx.fy, num:true}, {key:'share', label:'Share', num:true}, {key:'d1', label:'Change vs FY' + (tx.fy-1), num:true}, {key:'n', label:'Lines', num:true}],
+    (tb2, rs) => { for (const r of rs){ const tr = document.createElement('tr'); tr.className = 'click'; tr.addEventListener('click', () => { tx.sel = r.code; renderTaxonomy(); }); td(tr, null, 'name', `<b>${esc(r.code)}</b> ${esc(r.label)}`); td(tr, r.def).style.cssText = 'font-size:12px;color:var(--ink-2);max-width:460px'; td(tr, fmtB(r.v,1), 'num'); td(tr, (r.share*100).toFixed(1) + '%', 'num'); td(tr, null, 'num', deltaHtml(r.d1, v => fmtB(v,1))); td(tr, String(r.n), 'num'); tb2.appendChild(tr); } });
+  $('#txTblSub').textContent = `${dim.definition || ''} ${dim.rule ? 'Rule: ' + dim.rule : ''}`;
+  const sel = tx.sel; txLineRows = [];
+  if (sel){ for (const id of ids){ if (labelOf(id, di) !== sel) continue; const r = L.ids[id]; const [v] = pick(VAL.get(id*10000 + tx.fy), tx.mode, tx.fy); const codes = T.assign[id]; txLineRows.push({pe: r[F.line], title: r[F.line_title], org: r[F.org], ba: r[F.ba_title], v: v == null ? null : defl(v, tx.fy, constant), conf: codes[T.dims.length] || '', others: T.dims.map((d, k) => k === di ? null : `${d.code}:${codes[k]}`).filter(Boolean).join(' ')}); }
+    txLineRows.sort((a,b) => (b.v ?? -1) - (a.v ?? -1));
+    $('#txLinesTitle').textContent = `${txLabel(tx.dim, sel)}: ${txLineRows.length} program elements`; $('#txLinesSub').textContent = `FY${tx.fy} value, the labels assigned on the other dimensions, and the classifier's confidence (H, M, L). Lines without a value in FY${tx.fy} are listed last.`;
+    sortable($('#txLines'), txLineRows, [{key:'pe', label:'PE'}, {key:'title', label:'Program element'}, {key:'org', label:'Org'}, {key:'ba', label:'Budget activity'}, {key:'v', label:'FY' + tx.fy, num:true}, {key:'others', label:'Other labels'}, {key:'conf', label:'Conf.'}],
+      (tb3, rs) => { for (const r of rs){ const tr = document.createElement('tr'); td(tr, r.pe); td(tr, r.title, 'name'); td(tr, r.org); td(tr, r.ba).style.fontSize = '12px'; td(tr, fmtB(r.v,1), 'num'); td(tr, r.others).style.cssText = 'font-size:11px;color:var(--muted)'; td(tr, r.conf); tb3.appendChild(tr); } });
+  } else { $('#txLinesTitle').textContent = 'Program elements in the selected label'; $('#txLines').innerHTML = '<tbody><tr><td class="empty">Pick a label to see its program elements.</td></tr></tbody>'; }
+  $('#txProcess').innerHTML = T.process.panel_html || '';
+}
+$('#txCsv').addEventListener('click', () => dl(`taxonomy_${tx.dim}_${tx.sel || 'all'}_FY${tx.fy}.csv`, [csvRow(['pe','title','organization','budget_activity',`fy${tx.fy}_k`,'other_labels','confidence']), ...txLineRows.map(r => csvRow([r.pe, r.title, r.org, r.ba, r.v == null ? '' : Math.round(r.v), r.others, r.conf]))].join(String.fromCharCode(10))));
+RENDER.taxonomy = renderTaxonomy;
+
+// ===================== EXECUTION =====================
+function renderExec(){
+  const S = SERIES(); const rows = MACRO.usaspending_097.slice().sort((a,b) => a.fiscal_year - b.fiscal_year);
+  const yrs = rows.map(r => 'FY' + r.fiscal_year); const bn = v => v == null ? null : v / 1e9;
+  mkChart('chExec', {type:'bar', data:{labels: yrs, datasets:[{label:'Total budgetary resources', data: rows.map(r => bn(r.agency_budgetary_resources)), backgroundColor: S[0]}, {label:'Obligations', data: rows.map(r => bn(r.agency_total_obligated)), backgroundColor: S[2]}, {label:'Outlays', data: rows.map(r => bn(r.agency_total_outlayed)), backgroundColor: S[3]}].map(d => ({...d, borderWidth:0, borderRadius:2}))},
+    options:{plugins:{tooltip:{callbacks:{label: c => ` ${c.dataset.label}: $${c.raw.toFixed(0)}B`}}}, scales:{x:{grid:{display:false}}, y:{ticks:{callback: v => '$' + v.toFixed(0) + 'B', maxTicksLimit:7}, beginAtZero:true}}}});
+  mkChart('chExecRate', {type:'line', data:{labels: yrs, datasets:[lineDataset('Obligations ÷ resources', rows.map(r => r.agency_total_obligated / r.agency_budgetary_resources * 100), S[2]), lineDataset('Outlays ÷ resources', rows.map(r => r.agency_total_outlayed / r.agency_budgetary_resources * 100), S[3])].map(d => ({...d, pointRadius:4}))},
+    options:{plugins:{tooltip:{callbacks:{label: c => ` ${c.dataset.label}: ${c.raw.toFixed(1)}%`}}}, scales:{x:{grid:{display:false}}, y:{ticks:{callback: v => v.toFixed(0) + '%', maxTicksLimit:6}, beginAtZero:true, max:100}}}});
+}
+RENDER.exec = renderExec;
+
+// ===================== DATA =====================
+function renderData(){
+  const cov = $('#coverage'); cov.innerHTML = ''; const exs = ['p1','r1','o1','m1','c1'];
+  cov.insertAdjacentHTML('beforeend', '<div class="h">PB</div>' + exs.map(e => `<div class="h">${e.toUpperCase().replace(/(\d)/, '-$1')}</div>`).join(''));
+  const byFile = new Map(D.parse_log.map(e => [e.file.replace(/\.xlsx?$/, ''), e]));
+  for (let pb = 2003; pb <= 2027; pb++){ cov.insertAdjacentHTML('beforeend', `<div class="h">${pb}</div>`); for (const e of exs){ const l = byFile.get(`FY${pb}_${e}`); const st = !l ? 'miss' : l.status === 'ok' ? 'ok' : l.status === 'missing' ? 'miss' : 'skip'; const txt = st === 'ok' ? (l.rows ? l.rows.toLocaleString() : '✓') : st === 'miss' ? 'none' : 'skipped'; cov.insertAdjacentHTML('beforeend', `<div class="${st}" title="${esc(l ? l.status : 'not on site')}">${txt}</div>`); } }
+  const rows = []; for (const e of D.parse_log){ if (e.status !== 'ok' || !e.columns) continue; for (const [fy, col] of Object.entries(e.columns)){ const chk = e.sum_vs_check?.[fy]; rows.push({file: e.file, fy: +fy, col, sum: chk?.sum, check: chk?.check}); } }
+  sortable($('#colTable'), rows, [{key:'file', label:'File'}, {key:'fy', label:'FY', num:true}, {key:'col', label:'Column used'}, {key:'sum', label:'Parsed sum ($K)', num:true}, {key:'check', label:'Sheet check figure ($K)', num:true}], (tb, rs) => { for (const r of rs){ const tr = document.createElement('tr'); td(tr, r.file); td(tr, String(r.fy), 'num'); td(tr, r.col); td(tr, r.sum == null ? '–' : r.sum.toLocaleString(), 'num'); td(tr, r.check == null ? '–' : Math.round(r.check).toLocaleString(), 'num'); tb.appendChild(tr); } });
+}
+RENDER.data = renderData;
+
+// ===================== GUIDED STORY =====================
+// Seven beats that walk one question through the data: how much is the Department asking for autonomy and drones, how did it get here, and what can oversight actually see?
+const STORY = [
+  {tab:'overview', title:'The assignment', target:'#tiles',
+   cap:'<p><b>A congressional staffer is handed a question on a Tuesday afternoon:</b> the Pentagon is asking for a lot more money for drones and autonomous systems next year. How much, exactly? Where did it come from? And what can we actually check before the hearing on Thursday?</p><p>The staffer has what everyone has: the Pentagon’s own budget books, published every year since the 1990s as thousands of pages of tables. This page has turned twenty-five years of those books into one searchable table and joined it to three other public records. Follow the question through it in eight steps.</p>',
+   setup(){ ov.measure = 'gb_ba_by_title'; ov.dollars = 'current'; ov.from = 1990; ov.omb = 'ba'; $('#ovFrom').value = 1990; $('#ovRangeLbl').textContent = 'from FY1990'; }},
+  {tab:'overview', title:'1 · The step-up', target:'#chOvOmb',
+   cap:'<p><span class="k">What you are looking at.</span> how much money Congress has set aside for national defense each year since 1990, in billions of dollars, stacked by what kind of spending it is. The years shaded grey on the right are estimates published by the White House budget office this spring. “FY” means fiscal year, the government’s twelve-month budget year.</p><p><span class="k">What to notice.</span> the jump at FY2027, the year the Pentagon is asking for right now. In the research-and-development books alone, the request goes from about $213 billion to $345 billion in a single year. The staffer’s first question is simple: where does a jump like that actually land?</p>',
+   setup(){ ov.measure = 'gb_ba_by_title'; ov.dollars = 'current'; ov.from = 1990; ov.omb = 'ba'; $('#ovFrom').value = 1990; $('#ovRangeLbl').textContent = 'from FY1990'; }},
+  {tab:'explorer', title:'2 · One line', target:'#exTable',
+   cap:'<p><span class="k">What you are looking at.</span> the budget request opened like a filing cabinet. The Pentagon’s research budget is divided into about 2,200 numbered lines called program elements; each is one row in the budget book with a title and a dollar figure. We have opened the drawers one by one: research › the Office of the Secretary of Defense › its main research account › one category inside it.</p><p><span class="k">What to notice.</span> the top row. A single line called <b>Defense Autonomous Warfare Group</b> asks for <b>$54.6 billion</b>. For comparison, the entire Army research request is $18.3 billion. A line in a budget book is not a program you can inspect; it is a title and a number. Nobody can oversee a title.</p>',
+   setup(){ const id = L.ids.findIndex(r => r[F.ex] === 'r1' && r[F.line] === '0604539D8Z'); ex.fy = 2027; ex.mode = 'best'; ex.dollars = 'current'; ex.ex = 'r1'; ex.org = ''; ex.win = 27; ex.path = id >= 0 ? [{level:'org', value: idLabel(id,'org')}, {level:'acct', value: idLabel(id,'acct')}, {level:'ba', value: idLabel(id,'ba')}] : []; $('#exFy').value = 2027; $('#exEx').value = 'r1'; $('#exOrg').value = ''; $('#exMode').value = 'best'; $('#exWin').value = '27'; }},
+  {tab:'search', title:'3 · Keywords fail', target:'#sTable',
+   cap:'<p><span class="k">What you are looking at.</span> the obvious next move: a plain word search across all twenty-five years of budget lines for “unmanned”. Each row is one line; the columns show its dollars in recent years.</p><p><span class="k">What to notice.</span> 72 lines come back across the books, under six different owners, and the list mixes drones built to attack with systems built to shoot drones down. Even one narrow topic, defending against small drones, is spelled five different ways by four owners and grows from $3 million in 2020 to a $580 million joint office in 2027. Adding this up by keyword gives a wrong answer, and it cannot tell offense from defense.</p>',
+   setup(){ sr.q = 'unmanned'; sr.mode = 'best'; sr.dollars = 'current'; $('#sQ').value = 'unmanned'; $('#sMode').value = 'best'; }},
+  {tab:'taxonomy', title:'4 · The lens that refuses', target:'#txLines',
+   cap:'<p><span class="k">Why this step exists.</span> The gap the staffer keeps hitting is a knowledge gap: the budget tells you what each line is called, not what it is. Pursestrings closes that gap with fine-grained taxonomies, sets of questions whose answers are tagged onto every line automatically and then checked. For this demonstration we built one such taxonomy with five high-level dimensions: where a line operates, what problem it solves, what it produces, which technology it names, and where it is in its life. A model tagged all 2,200 lines under written rules, a second model argued with the design, and a third re-tagged a sample blind; they agreed about nine times in ten.</p><p><span class="k">What you are looking at.</span> the same 2,200 lines sorted by the technology dimension rather than by title.</p><p><span class="k">What to notice.</span> autonomy and robotics ran at $1 to $4 billion a year for twenty years, then <b>$59 billion</b>. The list on the right opens that bar: 93% is the one line from step 2, and its labels read <i>domain: not determinable</i>, <i>purpose: not determinable</i>, <i>product: mixed portfolio</i>, <i>life stage: not determinable</i>. The method could read that the line is about autonomy and refused to pretend it could read anything else. <b>Not classifying it is the finding.</b></p>',
+   setup(){ tx.dim = 'D'; tx.dim2 = 'B'; tx.fy = 2027; tx.mode = 'best'; tx.dollars = 'current'; tx.x = 'show'; tx.sel = 'D1'; $('#txFy').value = 2027; $('#txMode').value = 'best'; if ($('#txDim').options.length){ $('#txDim').value = 'D'; $('#txDim2').value = 'B'; } }},
+  {tab:'taxonomy', title:'5 · Two lenses at once', target:'#txXtab',
+   cap:'<p><span class="k">What you are looking at.</span> the same labels, crossed. Each row is what problem a line solves; each column is where it operates; each cell is the dollars in lines carrying both labels, shaded darker for more money. Empty cells are combinations the Pentagon does not fund.</p><p><span class="k">What to notice.</span> the row <b>Air and missile defense</b>. Research on shooting down missiles and drones went from $15.7 billion in FY2024 to $39.6 billion in FY2027, and the part of it based in space from $4.5 billion to between $11 and $15 billion. The new missile shield called Golden Dome appears as nine separate lines under nine different owners. The budget’s own filing system scatters them; the lens gathers them.</p>',
+   setup(){ tx.dim = 'B'; tx.dim2 = 'A'; tx.fy = 2027; tx.mode = 'best'; tx.dollars = 'current'; tx.x = 'show'; tx.sel = 'B2'; $('#txFy').value = 2027; if ($('#txDim').options.length){ $('#txDim').value = 'B'; $('#txDim2').value = 'A'; } }},
+  {tab:'vintage', title:'6 · When the record is thin', target:'#vTiles',
+   cap:'<p><span class="k">What you are looking at.</span> three versions of the same year. Every budget book carries three numbers for each line: what the Pentagon asked for (the request), what Congress approved (enacted), and what was finally spent (actual). They arrive in three different years’ books, so this page lines them up side by side for the year you choose.</p><p><span class="k">What to notice.</span> FY2024. The “enacted” figure is not really Congress’s decision. When the next book was printed, Congress had not passed a budget; the government was running on a stopgap called a continuing resolution, so the book carried the request adjusted for that stopgap. The $5.3 billion gap on screen is an artifact of the stopgap, not a judgment. Change the year to FY2023 or FY2025 and real differences appear. Knowing when the record itself is thin is part of what oversight needs.</p>',
+   setup(){ vt.fy = 2024; vt.level = 'acct'; vt.ex = 'r1'; vt.sort = 'dER'; vt.abs = 'abs'; $('#vFy').value = 2024; $('#vLevel').value = 'acct'; $('#vEx').value = 'r1'; $('#vSort').value = 'dER'; }},
+  {tab:'taxonomy', title:'7 · The hearing list', target:'#txXtab',
+   cap:'<p><span class="k">What you are looking at.</span> the life-stage labels (a new system, an upgrade to an existing one, keeping an old one running, early research, or “the title does not say”) crossed with which part of the Pentagon owns each line. Lines whose titles cannot be read at all have been hidden.</p><p><span class="k">What to notice.</span> the top row, <b>Not determinable</b>. Lines whose titles give no clue what stage the money is at carry <b>$150 billion</b> of next year’s research request: 55% of the Secretary’s office’s dollars, 63% of the Air Force’s, 68% of the Missile Defense Agency’s. Click any shaded cell and the lines behind it appear by name. That is a list of questions for Thursday’s hearing, and it took an afternoon to produce.</p>',
+   setup(){ tx.dim = 'E'; tx.dim2 = 'ORG'; tx.fy = 2027; tx.mode = 'best'; tx.dollars = 'current'; tx.x = 'hide'; tx.sel = 'E6'; $('#txFy').value = 2027; if ($('#txDim').options.length){ $('#txDim').value = 'E'; $('#txDim2').value = 'ORG'; } $$('#txX button').forEach(b => b.setAttribute('aria-pressed', b.dataset.v === 'hide' ? 'true' : 'false')); }},
+  {tab:'exec', title:'8 · Where Pursestrings goes next', target:'#chExecRate',
+   cap:'<p><span class="k">What you are looking at.</span> a different public record. USAspending.gov is the government’s ledger of money actually committed to contracts and paid out, not just requested. The bars compare, year by year, how much the Pentagon had available, how much it committed, and how much it paid.</p><p><span class="k">What to notice.</span> the Pentagon commits roughly half of the money it has available within the year. The staffer now has a question list; the next step is to follow the money from the request, through the hearings and watchdog reports, to what was spent. Pursestrings applies the same five-question method to hearing transcripts, Government Accountability Office reports and spending records, so a $54.6 billion line can be followed from the day it is asked for to what actually happened.</p>',
+   setup(){}},
+];
+const story = {i: -1};
+const bar = $('#storybar');
+function storyGo(i){
+  if (i < 0 || i >= STORY.length) return storyExit();
+  story.i = i; const st = STORY[i]; document.body.classList.add('story-on'); bar.hidden = false;
+  st.setup(); showTab(st.tab); try { history.replaceState(null, '', '#story' + i); } catch(e){}
+  $('#storyStep').textContent = (i === 0 ? 'The story' : `Step ${i} of ${STORY.length-1}`) + ' · ' + st.title; $('#storyCap').innerHTML = st.cap;
+  $('#storyPrev').disabled = i === 0; $('#storyNext').textContent = i === STORY.length - 1 ? 'Finish' : (i === 0 ? 'Begin ›' : 'Next ›');
+  setTimeout(() => { const el = $(st.target); const card = el && el.closest('.card, .grid, .filters'); if (card){ card.scrollIntoView({behavior:'smooth', block:'center'}); card.classList.remove('pulse'); void card.offsetWidth; card.classList.add('pulse'); } }, st.tab === 'taxonomy' ? 900 : 350);
+}
+function storyExit(){ story.i = -1; bar.hidden = true; document.body.classList.remove('story-on'); $$('.pulse').forEach(e => e.classList.remove('pulse')); try { history.replaceState(null, '', '#' + activeTab); } catch(e){} }
+$('#storyBtn').addEventListener('click', () => storyGo(0));
+$('#storyNext').addEventListener('click', () => storyGo(story.i + 1));
+$('#storyPrev').addEventListener('click', () => storyGo(story.i - 1));
+$('#storyExit').addEventListener('click', storyExit);
+document.addEventListener('keydown', e => { if (story.i < 0) return; if (e.key === 'ArrowRight') storyGo(story.i + 1); if (e.key === 'ArrowLeft') storyGo(story.i - 1); if (e.key === 'Escape') storyExit(); });
+
+// ---------- start ----------
+const h = (location.hash || '').replace('#','');
+const sm = h.match(/^story(\d+)$/);
+if (sm && +sm[1] >= 0 && +sm[1] < STORY.length){ showTab('overview'); storyGo(+sm[1]); } else showTab(RENDER[h] ? h : 'overview');
+window.addEventListener('hashchange', () => { const t = (location.hash || '').replace('#',''); if (RENDER[t] && t !== activeTab) showTab(t); });
+})().catch(e => { const l = document.querySelector('#loading'); const msg = '<div class="empty">Something went wrong while building the page: ' + (e && e.message ? e.message : e) + '</div>'; if (l) l.innerHTML = msg; else document.querySelector('main').insertAdjacentHTML('afterbegin', msg); console.error(e); });
+</script>
+
+</body>
+</html>
