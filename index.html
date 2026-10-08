@@ -784,6 +784,27 @@ matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => rere
 const CFG = (typeof window !== 'undefined' && window.DBE) || null;
 const HOSTED = !!(CFG && CFG.SUPABASE_URL && CFG.SUPABASE_ANON_KEY);
 let SB = null;
+// ---------- usage log (hosted mode only; rows are written by the signed-in visitor and readable only by the admin) ----------
+const LOG = { on: false, q: [], sid: Math.random().toString(36).slice(2, 10), tab: null, tabAt: 0, email: '', token: '', timer: null };
+let ADMIN = false;
+function logEv(kind, detail){ if (!LOG.on) return; LOG.q.push({ at: new Date().toISOString(), email: LOG.email, sid: LOG.sid, kind, detail: detail || null }); if (LOG.q.length >= 25) logFlush(); else if (!LOG.timer) LOG.timer = setTimeout(logFlush, 8000); }
+function logFlush(){ clearTimeout(LOG.timer); LOG.timer = null; if (!LOG.q.length || !LOG.token) return; const rows = LOG.q.splice(0);
+  try { fetch(CFG.SUPABASE_URL + '/rest/v1/dbe_events', { method: 'POST', keepalive: true, headers: { apikey: CFG.SUPABASE_ANON_KEY, Authorization: 'Bearer ' + LOG.token, 'Content-Type': 'application/json', Prefer: 'return=minimal' }, body: JSON.stringify(rows) }).catch(() => {}); } catch(e){} }
+function logTabLeave(){ if (LOG.tab && LOG.tabAt){ const ms = Date.now() - LOG.tabAt; if (ms > 500) logEv('tab', { tab: LOG.tab, ms }); } LOG.tabAt = Date.now(); }
+function logTabEnter(t){ if (!LOG.on) return; if (LOG.tab !== t) logTabLeave(); LOG.tab = t; LOG.tabAt = Date.now(); }
+function logStart(sb, session){ LOG.on = true; LOG.email = (session.user.email || '').toLowerCase(); LOG.token = session.access_token;
+  sb.auth.onAuthStateChange((_, s2) => { if (s2 && s2.access_token) LOG.token = s2.access_token; });
+  logEv('visit', { ua: navigator.userAgent.slice(0, 140), w: innerWidth, h: innerHeight, hash: location.hash || '' });
+  document.addEventListener('visibilitychange', () => { if (document.hidden){ logTabLeave(); logEv('leave', { why: 'hidden' }); logFlush(); } else { LOG.tabAt = Date.now(); } });
+  addEventListener('pagehide', () => { logTabLeave(); logEv('leave', { why: 'closed' }); logFlush(); });
+  document.addEventListener('click', e => { const el = e.target.closest('button, a.chip, tr.click, th, canvas, #txXtab td, .toc a'); if (!el || el.closest('#gate') || el.closest('#helpAdmin')) return;
+    const kind = el.tagName === 'CANVAS' ? 'chart' : el.getAttribute('role') === 'tab' ? 'tab' : el.tagName === 'TR' ? 'row' : el.tagName === 'TH' ? 'sort' : el.tagName === 'TD' ? 'cell' : el.tagName === 'A' ? 'link' : 'button';
+    const what = kind === 'chart' ? el.id : (el.textContent || '').trim().replace(/\s+/g, ' ').slice(0, 90);
+    logEv('click', { tab: activeTab, kind, what, id: el.id || undefined }); }, true);
+  const sq = $('#sQ'); if (sq) sq.addEventListener('change', e => logEv('search', { q: e.target.value.trim().slice(0, 90) }));
+}
+
+$('#tabs').addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; showTab(b.dataset.tab); });
 async function sbClient(){ if (SB) return SB; const { createClient } = await import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm'); SB = createClient(CFG.SUPABASE_URL, CFG.SUPABASE_ANON_KEY, { auth: { persistSession: true, detectSessionInUrl: true, flowType: 'implicit' } }); return SB; }
 function gateMode(mode){ const f = $('#gateForm'); const t = $('#gateTitle'), x = $('#gateText'), em = $('#gateEmailWrap'), pw = $('#gatePassWrap'), lbl = $('#gatePassLabel'), sub = $('#gateSubmit'), fg = $('#gateForgot'); $('#gateErr').textContent = ''; $('#gateOk').textContent = ''; f.dataset.mode = mode;
   if (mode === 'signin'){ t.textContent = 'Sign in to the Defense Budget Explorer'; x.textContent = 'This demonstration is shared by invitation. Sign in with the username or email you were given.'; em.hidden = false; pw.hidden = false; lbl.textContent = 'Password'; $('#gatePass').autocomplete = 'current-password'; sub.textContent = 'Sign in'; fg.hidden = false; fg.textContent = 'Forgot password?'; }
@@ -890,28 +911,6 @@ const deltaHtml = (v, fmt) => v == null ? '–' : `<span class="delta ${v >= 0 ?
 // ---------- tabs ----------
 const panels = {}; let activeTab = 'overview';
 
-// ---------- usage log (hosted mode only; rows are written by the signed-in visitor and readable only by the admin) ----------
-const LOG = { on: false, q: [], sid: Math.random().toString(36).slice(2, 10), tab: null, tabAt: 0, email: '', token: '', timer: null };
-let ADMIN = false;
-function logEv(kind, detail){ if (!LOG.on) return; LOG.q.push({ at: new Date().toISOString(), email: LOG.email, sid: LOG.sid, kind, detail: detail || null }); if (LOG.q.length >= 25) logFlush(); else if (!LOG.timer) LOG.timer = setTimeout(logFlush, 8000); }
-function logFlush(){ clearTimeout(LOG.timer); LOG.timer = null; if (!LOG.q.length || !LOG.token) return; const rows = LOG.q.splice(0);
-  try { fetch(CFG.SUPABASE_URL + '/rest/v1/dbe_events', { method: 'POST', keepalive: true, headers: { apikey: CFG.SUPABASE_ANON_KEY, Authorization: 'Bearer ' + LOG.token, 'Content-Type': 'application/json', Prefer: 'return=minimal' }, body: JSON.stringify(rows) }).catch(() => {}); } catch(e){} }
-function logTabLeave(){ if (LOG.tab && LOG.tabAt){ const ms = Date.now() - LOG.tabAt; if (ms > 500) logEv('tab', { tab: LOG.tab, ms }); } LOG.tabAt = Date.now(); }
-function logTabEnter(t){ if (!LOG.on) return; if (LOG.tab !== t) logTabLeave(); LOG.tab = t; LOG.tabAt = Date.now(); }
-function logStart(sb, session){ LOG.on = true; LOG.email = (session.user.email || '').toLowerCase(); LOG.token = session.access_token;
-  sb.auth.onAuthStateChange((_, s2) => { if (s2 && s2.access_token) LOG.token = s2.access_token; });
-  logEv('visit', { ua: navigator.userAgent.slice(0, 140), w: innerWidth, h: innerHeight, hash: location.hash || '' });
-  logTabEnter(activeTab);
-  document.addEventListener('visibilitychange', () => { if (document.hidden){ logTabLeave(); logEv('leave', { why: 'hidden' }); logFlush(); } else { LOG.tabAt = Date.now(); } });
-  addEventListener('pagehide', () => { logTabLeave(); logEv('leave', { why: 'closed' }); logFlush(); });
-  document.addEventListener('click', e => { const el = e.target.closest('button, a.chip, tr.click, th, canvas, #txXtab td, .toc a'); if (!el || el.closest('#gate') || el.closest('#helpAdmin')) return;
-    const kind = el.tagName === 'CANVAS' ? 'chart' : el.getAttribute('role') === 'tab' ? 'tab' : el.tagName === 'TR' ? 'row' : el.tagName === 'TH' ? 'sort' : el.tagName === 'TD' ? 'cell' : el.tagName === 'A' ? 'link' : 'button';
-    const what = kind === 'chart' ? el.id : (el.textContent || '').trim().replace(/\s+/g, ' ').slice(0, 90);
-    logEv('click', { tab: activeTab, kind, what, id: el.id || undefined }); }, true);
-  const sq = $('#sQ'); if (sq) sq.addEventListener('change', e => logEv('search', { q: e.target.value.trim().slice(0, 90) }));
-}
-
-$('#tabs').addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; showTab(b.dataset.tab); });
 function showTab(t){ activeTab = t; logTabEnter(t); $$('#tabs button').forEach(b => b.setAttribute('aria-selected', b.dataset.tab === t ? 'true':'false')); $$('.panel').forEach(p => p.classList.toggle('active', p.id === 'panel-' + t)); try { location.hash = t; } catch(e){} (RENDER[t] || (()=>{}))(); }
 const RENDER = {};
 function rerenderAll(){ (RENDER[activeTab] || (()=>{}))(); }
