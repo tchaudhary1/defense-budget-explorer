@@ -24,8 +24,8 @@ const SITE = (process.env.SITE_URL || 'https://tchaudhary1.github.io/defense-bud
 const sb = createClient(URL_, SERVICE, { auth: { persistSession: false } });
 const BUCKET = 'data';
 const FILES = ['data.b64.txt', 'taxonomy.json', 'taxonomy_v1.tsv.txt', 'taxonomy_v1_notes.txt', 'critique_v1.txt', 'taxonomy_v2.tsv.txt', 'taxonomy_v2_changelog.txt', 'classifier_brief.txt',
-  'taxonomy_assignments.csv', 'blind_coding_sheet.csv', 'dod_p1_procurement_lines.csv', 'dod_r1_rdte_lines.csv', 'dod_o1_om_lines.csv', 'dod_m1_milpers_lines.csv', 'dod_c1_projects.csv', 'green_book_fy2023_series.csv', 'omb_function_050_series.csv'];
-const TYPES = { '.txt': 'text/plain', '.json': 'application/json', '.csv': 'text/csv' };
+  'taxonomy_assignments.csv', 'blind_coding_sheet.csv', ...Array.from({length: 9}, (_, i) => `narration/step${i}.mp3`), 'dod_p1_procurement_lines.csv', 'dod_r1_rdte_lines.csv', 'dod_o1_om_lines.csv', 'dod_m1_milpers_lines.csv', 'dod_c1_projects.csv', 'green_book_fy2023_series.csv', 'omb_function_050_series.csv'];
+const TYPES = { '.txt': 'text/plain', '.json': 'application/json', '.csv': 'text/csv', '.mp3': 'audio/mpeg' };
 
 async function mgmt(method, p, body) {
   if (!PAT) throw new Error('SUPABASE_ACCESS_TOKEN needed for ' + p);

@@ -143,6 +143,12 @@ body.story-on main{padding-bottom:230px}
 #gate .ok{color:#0B7A3E;font-size:13px;min-height:18px;margin-top:8px}
 .acct{display:inline-flex;gap:6px;align-items:center;margin-left:10px;font-size:12px;color:#D6DBD4}
 .acct button{border:1px solid rgba(255,255,255,.35);background:transparent;color:#fff;border-radius:6px;padding:4px 10px;cursor:pointer;font-size:12px}
+
+#storybar .nar{display:flex;gap:8px;align-items:center;flex:0 0 auto;font-size:12px;color:#D6DBD4}
+#storybar .nar button{border:1px solid rgba(255,255,255,.4);background:transparent;color:#fff;border-radius:6px;padding:6px 10px;cursor:pointer;font-size:12px}
+#storybar .nar button[aria-pressed="true"]{background:var(--buzz);color:#1C2430;border-color:var(--buzz);font-weight:700}
+#storybar .nar .bar{width:90px;height:4px;background:rgba(255,255,255,.25);border-radius:2px;overflow:hidden}
+#storybar .nar .bar i{display:block;height:100%;width:0;background:var(--buzz)}
 footer{border-top:1px solid var(--rule);color:var(--muted);font-size:12px;padding:16px 0 28px}
 kbd.code{font-family:ui-monospace,Consolas,monospace;font-size:12px;background:var(--surface-2);padding:1px 5px;border-radius:4px}
 .themebtn{border:1px solid rgba(255,255,255,.35);background:transparent;color:#fff;border-radius:6px;padding:4px 10px;cursor:pointer;font-size:12px;margin-left:10px}
@@ -352,7 +358,7 @@ kbd.code{font-family:ui-monospace,Consolas,monospace;font-size:12px;background:v
     </div>
   </section>
 </main>
-<div id="storybar" hidden><div class="in"><div class="step" id="storyStep"></div><div class="cap" id="storyCap"></div><div class="btns"><button id="storyPrev" type="button">‹ Back</button><button id="storyNext" type="button" class="primary">Next ›</button><button id="storyExit" type="button">Exit</button></div></div></div>
+<div id="storybar" hidden><div class="in"><div class="step" id="storyStep"></div><div class="cap" id="storyCap"></div><div class="nar"><button id="narToggle" type="button" aria-pressed="false" title="Read each step aloud">🔊 Narration off</button><button id="narPlay" type="button" hidden title="Play or pause">▶</button><div class="bar" hidden id="narBar"><i id="narFill"></i></div></div><div class="btns"><button id="storyPrev" type="button">‹ Back</button><button id="storyNext" type="button" class="primary">Next ›</button><button id="storyExit" type="button">Exit</button></div></div></div>
 <footer><div class="wrap">Built as a Pursestrings demonstration, Sam Nunn School of International Affairs, Georgia Tech. All figures are as published by the sources named above; this page adds no estimates of its own. Questions: tchaudhary@gatech.edu</div></footer>
 
 <script>
@@ -833,16 +839,33 @@ const STORY = [
    setup(){}},
 ];
 const story = {i: -1};
+
+// ---------- narration (optional audio for each story step) ----------
+const NAR = { on: false, audio: null, step: -1, urls: {}, available: null };
+try { NAR.on = localStorage.getItem('dbe-narration') === 'on'; } catch(e){}
+async function narUrl(i){ const name = `narration/step${i}.mp3`; if (NAR.urls[name]) return NAR.urls[name]; let url = name;
+  if (HOSTED){ const sb = await sbClient(); const { data, error } = await sb.storage.from(CFG.BUCKET || 'data').download(name); if (error) throw new Error(error.message); url = URL.createObjectURL(data); }
+  NAR.urls[name] = url; return url; }
+function narStop(){ if (NAR.audio){ NAR.audio.pause(); NAR.audio.src = ''; NAR.audio = null; } $('#narPlay').textContent = '▶'; $('#narFill').style.width = '0'; }
+async function narPlay(i){ narStop(); if (!NAR.on) return; NAR.step = i;
+  try { const url = await narUrl(i); if (NAR.step !== i || !NAR.on) return; const a = new Audio(url); NAR.audio = a; a.addEventListener('timeupdate', () => { if (a.duration) $('#narFill').style.width = (a.currentTime / a.duration * 100).toFixed(1) + '%'; }); a.addEventListener('ended', () => { $('#narPlay').textContent = '▶'; }); a.addEventListener('play', () => { $('#narPlay').textContent = '❚❚'; }); a.addEventListener('pause', () => { $('#narPlay').textContent = '▶'; }); await a.play(); narUrl(i + 1).catch(() => {}); }
+  catch (e) { toast('Narration for this step is not available.'); } }
+function narUi(){ const t = $('#narToggle'); t.setAttribute('aria-pressed', NAR.on ? 'true' : 'false'); t.textContent = NAR.on ? '🔊 Narration on' : '🔇 Narration off'; $('#narPlay').hidden = !NAR.on; $('#narBar').hidden = !NAR.on; }
+$('#narToggle').addEventListener('click', () => { NAR.on = !NAR.on; try { localStorage.setItem('dbe-narration', NAR.on ? 'on' : 'off'); } catch(e){} narUi(); if (NAR.on && story.i >= 0) narPlay(story.i); else narStop(); });
+$('#narPlay').addEventListener('click', () => { if (NAR.audio){ if (NAR.audio.paused) NAR.audio.play(); else NAR.audio.pause(); } else if (story.i >= 0) narPlay(story.i); });
+narUi();
+
 const bar = $('#storybar');
 function storyGo(i){
   if (i < 0 || i >= STORY.length) return storyExit();
   story.i = i; const st = STORY[i]; document.body.classList.add('story-on'); bar.hidden = false;
   st.setup(); showTab(st.tab); try { history.replaceState(null, '', '#story' + i); } catch(e){}
   $('#storyStep').textContent = (i === 0 ? 'The story' : `Step ${i} of ${STORY.length-1}`) + ' · ' + st.title; $('#storyCap').innerHTML = st.cap;
+  narPlay(i);
   $('#storyPrev').disabled = i === 0; $('#storyNext').textContent = i === STORY.length - 1 ? 'Finish' : (i === 0 ? 'Begin ›' : 'Next ›');
   setTimeout(() => { const el = $(st.target); const card = el && el.closest('.card, .grid, .filters'); if (card){ card.scrollIntoView({behavior:'smooth', block:'center'}); card.classList.remove('pulse'); void card.offsetWidth; card.classList.add('pulse'); } }, st.tab === 'taxonomy' ? 900 : 350);
 }
-function storyExit(){ story.i = -1; bar.hidden = true; document.body.classList.remove('story-on'); $$('.pulse').forEach(e => e.classList.remove('pulse')); try { history.replaceState(null, '', '#' + activeTab); } catch(e){} }
+function storyExit(){ narStop(); story.i = -1; bar.hidden = true; document.body.classList.remove('story-on'); $$('.pulse').forEach(e => e.classList.remove('pulse')); try { history.replaceState(null, '', '#' + activeTab); } catch(e){} }
 $('#storyBtn').addEventListener('click', () => storyGo(0));
 $('#storyNext').addEventListener('click', () => storyGo(story.i + 1));
 $('#storyPrev').addEventListener('click', () => storyGo(story.i - 1));
