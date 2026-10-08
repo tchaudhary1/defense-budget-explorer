@@ -296,6 +296,28 @@ body.story-on main{padding-bottom:230px}
 @keyframes ptrBob{0%,100%{transform:translate(0,0)}50%{transform:translate(var(--bx,0),var(--by,0))}}
 .ptr-target{outline:3px solid var(--buzz) !important;outline-offset:3px;border-radius:6px;transition:outline-color .3s}
 @media (prefers-reduced-motion: reduce){.ptr{animation:ptrIn .3s ease-out forwards}}
+
+.help{max-width:960px}
+.help h2{font-family:"Roboto Slab",serif;font-size:20px;margin:26px 0 8px;color:var(--navy);scroll-margin-top:16px}
+.help h3{margin:16px 0 6px}
+.help p,.help li{font-size:14px;line-height:1.55;color:var(--ink)}
+.help ul,.help ol{padding-left:20px;margin:6px 0}
+.help li{margin:3px 0}
+.help .toc{display:flex;flex-wrap:wrap;gap:6px 8px;margin:10px 0 4px}
+.help .toc a{font-size:12px;padding:4px 10px;border:1px solid var(--rule);border-radius:999px;background:var(--surface);color:var(--ink);text-decoration:none}
+.help .toc a:hover{border-color:var(--navy)}
+.help .callout{border-left:4px solid var(--buzz);background:var(--surface);border-radius:0 10px 10px 0;padding:12px 16px;margin:12px 0;font-size:14px;line-height:1.55}
+.help .callout.warn{border-left-color:#B42318}
+.help .callout b:first-child{display:block;margin-bottom:4px}
+.help dl{display:grid;grid-template-columns:minmax(120px,220px) 1fr;gap:6px 14px;margin:8px 0}
+.help dt{font-weight:600;font-size:13px}
+.help dd{margin:0;font-size:13px;color:var(--ink-2);line-height:1.5}
+.help .labels{columns:2;column-gap:28px;font-size:13px}
+.help .labels div{break-inside:avoid;margin:0 0 4px}
+.help .labels b{font-family:"Roboto Mono",monospace;font-size:12px;color:var(--navy)}
+.help .labels .ret{color:var(--muted);text-decoration:line-through}
+.help kbd.key{border:1px solid var(--rule);border-bottom-width:2px;border-radius:4px;padding:0 6px;font-size:12px;background:var(--surface)}
+@media (max-width:700px){.help dl{grid-template-columns:1fr}.help .labels{columns:1}}
 footer{border-top:1px solid var(--rule);color:var(--muted);font-size:12px;padding:16px 0 28px}
 kbd.code{font-family:ui-monospace,Consolas,monospace;font-size:12px;background:var(--surface-2);padding:1px 5px;border-radius:4px}
 .themebtn{border:1px solid rgba(255,255,255,.35);background:transparent;color:#fff;border-radius:6px;padding:4px 10px;cursor:pointer;font-size:12px;margin-left:10px}
@@ -319,6 +341,7 @@ kbd.code{font-family:ui-monospace,Consolas,monospace;font-size:12px;background:v
       <button role="tab" data-tab="milcon" aria-selected="false">Construction by place</button>
       <button role="tab" data-tab="exec" aria-selected="false">Execution</button>
       <button role="tab" data-tab="data" aria-selected="false">Data &amp; methods</button>
+      <button role="tab" data-tab="help" aria-selected="false">Help</button>
     </nav>
   </div>
 </header>
@@ -504,10 +527,200 @@ kbd.code{font-family:ui-monospace,Consolas,monospace;font-size:12px;background:v
       </div>
     </div>
   </section>
+
+  <!-- ===================== HELP ===================== -->
+  <section class="panel" id="panel-help">
+    <div class="help">
+      <div class="callout warn"><b>This is a demonstration, not a finished product.</b>The figures are the published ones, but the parsing, the joins across years and the taxonomy have not been through the vetting that would make them fit to cite. Treat every number as "what the source files say when read by a script", and every taxonomy label as "what a language model said after reading a title". The <a href="#help-caveats">caveats section</a> lists what is and is not reliable.</div>
+      <h2 id="help-start" style="margin-top:14px">What this is</h2>
+      <p>The Defense Budget Explorer puts twenty-five years of the Department of Defense's own budget justification tables in one place and lets you cut them by year, by appropriation title, by organization, by budget activity and by individual line. It joins them to three outside records: the Comptroller's Green Book (long history back to 1948), the Office of Management and Budget's Historical Tables (national defense as a share of the economy and of federal spending) and USAspending.gov (what was actually obligated and paid). On top of that sits a small <a href="#help-taxonomy">taxonomy demonstration</a>: every research line tagged on five dimensions by an automated classifier, so the same money can be regrouped by the problem it solves, where it operates, what it produces, which technology it leans on and where it sits in a program's life.</p>
+      <div class="toc">
+        <a href="#help-around">Getting around</a><a href="#help-numbers">Reading the numbers</a><a href="#help-controls">Common controls</a><a href="#help-tabs">Tab by tab</a><a href="#help-taxonomy">Taxonomy demo</a><a href="#help-story">The guided story</a><a href="#help-caveats">Caveats</a><a href="#help-glossary">Glossary</a><a href="#help-trouble">Troubleshooting</a>
+      </div>
+
+      <h2 id="help-around">Getting around</h2>
+      <ul>
+        <li><b>Tabs</b> across the top switch between views. The address bar follows (for example <span class="code">#explorer</span>), so a link to a tab can be shared or bookmarked. Every view keeps its own settings while you move between tabs.</li>
+        <li><b>▶ Play the story</b> (gold button, top right) starts a guided eight-step walk through the data with optional narration. It never starts by itself. See <a href="#help-story">The guided story</a>.</li>
+        <li><b>Theme</b> switches between the light and dark design. The page opens light; your choice is remembered on this device.</li>
+        <li><b>Account</b>: when the site is sign-in protected, your username appears at the top right with <b>Change password</b> and <b>Sign out</b>. <b>Forgot password?</b> on the sign-in screen emails a reset link if your account is an email address; username-only accounts have no mailbox, so ask the person who gave you the account.</li>
+        <li><b>Hover</b> over any bar, line, dot or shaded cell for the exact figure. <b>Click</b> a bar or a table row where the cursor becomes a hand to drill into it. Column headers in tables sort when clicked.</li>
+      </ul>
+
+      <h2 id="help-numbers">Reading the numbers</h2>
+      <h3>Units</h3>
+      <p>The budget exhibits record money in <b>thousands of dollars</b>. The page shows it in millions (<b>M</b>) or billions (<b>B</b>): <span class="code">$4.5B</span> is 4.5 billion dollars, <span class="code">$761M</span> is 761 million. In the cross-tab a very small cell may show <b>K</b> for thousands. The CSV copies keep the source's thousands (columns ending in <span class="code">_k</span> or <span class="code">_thousands</span>). Green Book and OMB tables are in millions in their sources.</p>
+      <h3>Fiscal years</h3>
+      <p>All years are federal fiscal years: FY2027 runs from 1 October 2026 to 30 September 2027. "PB2025" means the President's Budget submitted in early 2024 for FY2025. The exhibits cover PB2003 to PB2027 and therefore carry values for FY2001 to FY2027.</p>
+      <h3>Request, enacted, actual: the three "stages"</h3>
+      <p>Every budget book shows three columns for each line: the year being requested (<b>request</b>), the year in progress (<b>enacted</b>, what Congress appropriated) and the year just finished (<b>actual</b>, what was really spent or obligated). So one fiscal year's figure appears in three different books, and the three often disagree. The page keeps all three and marks which one you are seeing with a small pill:</p>
+      <p><span class="pill r">request</span> from that year's own budget &nbsp; <span class="pill e">enacted</span> from the next year's budget &nbsp; <span class="pill a">actual</span> from the budget two years later.</p>
+      <p>The <b>Stage</b> control chooses which one to show. <b>Best available per year</b> (the default) takes the actual where one has been published, otherwise the enacted, otherwise the request. The choice is made once per fiscal year for the whole table, so the most recent two years are always enacted and request: in FY2027 everything is a request; in FY2026 everything is enacted. A group of rows can carry more than one pill when it mixes years.</p>
+      <div class="callout"><b>Continuing-resolution years.</b>In four budgets (PB2014 for FY2013, PB2018 for FY2017, PB2019 for FY2018, PB2025 for FY2024) the appropriation had not passed when the book went to print, so the "enacted" column is really the request adjusted for a stopgap continuing resolution. The Request vs. enacted view warns you when you pick one of those years.</div>
+      <h3>Current vs. constant dollars</h3>
+      <p><b>Current</b> dollars are the figures as printed. <b>Constant FY2027</b> dollars remove inflation using OMB's composite outlay deflator for national defense, so a 2005 figure is restated in 2027 purchasing power. The Topline tab's Green Book series instead offers constant FY2023 dollars, which is how the Comptroller published them.</p>
+      <h3>Why FY2027 jumps</h3>
+      <p>The FY2027 exhibits print a "Total" column that adds a mandatory (reconciliation) request to the normal discretionary request, and FY2026 totals include the spend plan for the 2025 reconciliation law. The page uses those totals, so FY2027 steps up sharply in every view. That is the source's framing, not an error, but keep it in mind when comparing with earlier years.</p>
+      <h3>Blanks, zeros and "Other"</h3>
+      <ul>
+        <li>A blank or dash means the line did not exist in that book (a new start, a termination or a renumbered program element). It is not a zero.</li>
+        <li>Bar charts show the twenty or so largest items and fold the rest into a grey <b>Other (n more)</b> bar. Stacked time charts do the same with the top eight.</li>
+        <li>Change columns (<span class="delta pos">+</span> green, <span class="delta neg">−</span> red) compare with the previous fiscal year under the same stage setting. <b>5-yr CAGR</b> is the compound annual growth rate over the five years before the selected year.</li>
+        <li><b>Share</b> is the row's percentage of the total currently in view, after all filters.</li>
+      </ul>
+
+      <h2 id="help-controls">Common controls</h2>
+      <dl>
+        <dt>Fiscal year slider</dt><dd>Chooses the year for the bar chart, the tables and the cross-tab. The label beside it shows the chosen year. Time charts always show the full range.</dd>
+        <dt>Stage</dt><dd>Request, enacted, actual or best available. See above.</dd>
+        <dt>Dollars</dt><dd>Current or constant FY2027.</dd>
+        <dt>Exhibit</dt><dd>Restricts to one appropriation title: P-1 Procurement, R-1 Research, Development, Test and Evaluation (RDT&amp;E), O-1 Operation and Maintenance, M-1 Military Personnel. "All four titles" sums them.</dd>
+        <dt>Organization</dt><dd>The military department or defense agency shown as the owner in the exhibit (Army, Navy, Air Force, Defense-Wide, and under Defense-Wide the agencies such as DARPA, MDA, OSD, SOCOM). Letter codes in the oldest books were translated to names.</dd>
+        <dt>Series window</dt><dd>How many years the time chart shows.</dd>
+        <dt>Breadcrumb</dt><dd>The row of buttons above the charts in Explorer and Construction shows where you have drilled to. Click an earlier crumb to go back up.</dd>
+        <dt>Copy as CSV</dt><dd>Copies the table in view to the clipboard as comma-separated text, ready to paste into Excel or a text file. Nothing is downloaded. Full tables are also published as files on the Data &amp; methods tab.</dd>
+        <dt>Table headers</dt><dd>Click to sort; click again to reverse.</dd>
+      </dl>
+
+      <h2 id="help-tabs">Tab by tab</h2>
+      <h3>Topline since 1948</h3>
+      <p>The long view. The six <b>tiles</b> give the headline numbers: the FY2027 request across the four exhibits, OMB's national defense budget authority and outlays (function 050, which also includes nuclear weapons work at the Department of Energy and a few other agencies), defense outlays as a share of GDP, active military and civilian end strength, and the procurement plus research request.</p>
+      <ul>
+        <li><b>Measure</b>: budget authority (permission to commit money), total obligational authority (TOA, the Department's own measure of a year's program), or outlays (cash actually paid). <b>Dollars</b> switches to the Comptroller's constant FY2023 series. <b>Years</b> trims the start of the long chart.</li>
+        <li><b>Department of Defense by appropriation title</b>: stacked by Military Personnel, Operation and Maintenance, Procurement, RDT&amp;E, Military Construction and smaller titles, from the Green Book. Years after FY2022 are the FY2023 budget's estimates.</li>
+        <li><b>National defense (function 050)</b>: OMB's series, with buttons for budget authority, outlays, outlays as a percentage of GDP, and the share of all federal outlays. Shaded years are the FY2027 budget's projections.</li>
+        <li><b>Budget authority by military department</b> and <b>DoD manpower</b>: Green Book tables 6-10 and 7-5.</li>
+      </ul>
+      <h3>Explorer</h3>
+      <p>The filing cabinet. Start at the four appropriation titles and click down through organization, account, budget activity and finally the individual line item (a procurement line, a program element, an operation and maintenance sub-activity group or a military personnel sub-activity). The filters above skip levels: pick an exhibit and an organization and the first click already lands on accounts.</p>
+      <ul>
+        <li><b>Composition</b> (left): the items at the current level for the chosen year, largest first. Click a bar to drill in.</li>
+        <li><b>Over time</b> (right): the top eight of those items stacked across the series window, under the chosen stage. FY2027 is request only.</li>
+        <li><b>Detail table</b>: every item at the level with its value, share, change against the previous year, percentage change, five-year growth, the number of underlying lines and the stage pills that supplied the values. Rows are clickable until you reach line level.</li>
+      </ul>
+      <h3>Request vs. enacted vs. actual</h3>
+      <p>Where the three stages are set side by side for one fiscal year. Choose the <b>level</b> (title, organization, account, budget activity or line), an exhibit, and how to <b>sort</b>: by enacted minus request (what Congress changed), actual minus enacted (what the Department did differently from the appropriation), actual minus request, or request size. <b>Show</b> switches the ranking between the largest dollar moves and the largest percentage moves.</p>
+      <ul>
+        <li><b>Tiles</b>: the year's total request, enacted and actual across the exhibits in view, with the change between them. "Not yet published" means that book has not come out.</li>
+        <li><b>Biggest movers</b>: the fifteen rows with the largest moves, three bars each (request amber, enacted blue, actual green).</li>
+        <li><b>How the three vintages line up</b>: one dot per row, request along the bottom and enacted up the side, both on logarithmic scales. Dots on the dashed diagonal were enacted exactly as requested; above it Congress added, below it Congress cut. Hover a dot for its name.</li>
+        <li><b>All rows</b> table with the raw three figures and the differences, and a note below explaining which book each column came from and any continuing-resolution caution.</li>
+      </ul>
+      <h3>Program search</h3>
+      <p>A plain word search over line titles, codes, account names and sub-activity names across all years. Type a system name or a program element code (for example <span class="code">0603286E</span>), or click an example chip. All words typed must appear. <b>Trajectories</b> charts the eight largest matches by cumulative dollars year by year; <b>Where the money sits</b> groups all matches by appropriation account in the latest year that has a value; <b>Matching lines</b> lists every hit with its last six years and cumulative total. The story uses this tab to show why word search alone misses programs whose titles do not say what they are.</p>
+      <h3>Taxonomy demo</h3>
+      <p>Covered in its own section <a href="#help-taxonomy">below</a>.</p>
+      <h3>Construction by place</h3>
+      <p>The C-1 exhibit lists Military Construction, Family Housing and base realignment (BRAC) projects with their location. Drill from <b>state or country</b> to <b>installation</b> to <b>project</b>. <b>Scope</b> limits the view to US states and territories or to overseas locations. The table lists every project funded in the chosen year with its facility category and account. Coverage starts at PB2005 because the first two C-1 books had no appropriation column.</p>
+      <h3>Execution</h3>
+      <p>A different public record. USAspending.gov reports, for the Department as a whole, each year's total budgetary resources, how much was obligated (committed by contract or order) and how much was outlaid (paid). The <b>obligation rate</b> chart divides those by the resources. These figures include mandatory accounts and balances carried over from earlier years, so they are not directly comparable with the discretionary request on the other tabs. The point of the tab is the link: an under-execution signal here can in principle be traced back to the lines that were funded.</p>
+      <h3>Data &amp; methods</h3>
+      <p>The sources, the normalization rules, a <b>coverage grid</b> (green: parsed and reconciled against the sheet's own check figure, with the row count; amber: skipped; red: not on the Comptroller site), downloadable CSV extracts, and the audit table showing which spreadsheet column was used for every file and year and how the parsed sum compares with the sheet's "Total of Displayed Rows". Read this before quoting anything.</p>
+
+      <h2 id="help-taxonomy">The taxonomy demo</h2>
+      <div class="callout warn"><b>What it is not.</b>This is not the Pursestrings taxonomy and not a validated classifier. It is a small, end-to-end demonstration of the method (draft, independent critique, revision, gated classification, blind second coding) run on the 2,236 program element titles of the R-1 exhibit in a single day, using language models for every role. No human has adjudicated the labels. Agreement between two models is reported because it is measurable, not because it proves the labels are right.</div>
+      <h3>Why it exists</h3>
+      <p>The exhibits organize money by who owns it and which account it sits in. A question like "how much goes to autonomy?" or "how much is new systems versus upgrades?" cuts across all of that. A taxonomy adds labels that let the same lines be regrouped along those other axes. The demonstration tags every research program element once, on five <b>dimensions</b>, with exactly one <b>label</b> per dimension.</p>
+      <h3>The five dimensions, and two helpers</h3>
+      <dl>
+        <dt>A · Operating domain</dt><dd>Where the end item is physically employed: air, land, maritime, space, cyberspace, multi-domain, no domain, or not determinable.</dd>
+        <dt>B · Mission function</dt><dd>The military or institutional problem the line exists to solve: strike, air and missile defense, intelligence and surveillance, command and control, cyber and electronic warfare, mobility, force protection, nuclear deterrence, personnel and health, installations, enterprise management, the science base, test infrastructure, air superiority and sea control, the industrial base, irregular warfare, or not determinable.</dd>
+        <dt>C · Object of development</dt><dd>What kind of thing the line produces: a platform, a weapon, a sensor, software, a component, services and studies, a facility, a medical product, a mixed portfolio, an integrated combat system, research knowledge, communications hardware, or not determinable.</dd>
+        <dt>D · Technology emphasis</dt><dd>A named technology family, only when the title names one: AI and autonomy, hypersonics, directed energy, cyber and networking, microelectronics and quantum, sensing, biotechnology, materials and energy, nuclear, modeling and simulation. Most lines name none and get <b>D11 · No technology family named</b>.</dd>
+        <dt>E · Program posture</dt><dd>Where the line sits in the life of a capability, read from the title alone: a new system, an upgrade of a fielded one, in-service support, research and demonstration, a successor increment, no lifecycle (studies, workforce), or not determinable.</dd>
+        <dt>BA · Budget activity</dt><dd>Not part of the taxonomy. The Department's own R-1 maturity code (01 basic research through 08 software pilots), included only so posture (E) can be compared with it in the cross-tab.</dd>
+        <dt>ORG · Owning organization</dt><dd>Not part of the taxonomy. The service or agency from the exhibit, for cross-tabulation only.</dd>
+      </dl>
+      <p>Every label in the current version, with its code, is listed at the end of this section and, with definitions, in the <b>Labels in this dimension</b> table on the tab itself.</p>
+      <h3>Special labels and codes</h3>
+      <ul>
+        <li><b>Unclassifiable (gate), shown as X.</b> Before classifying, each line passes a gate. Classified programs, placeholders and bare code names fail it and receive X on every dimension. 107 lines failed; they carry about a fifth of cumulative dollars, which is itself a finding. The <b>Unclassifiable lines</b> control shows or hides them.</li>
+        <li><b>Not determinable (A8, B17, C12, E6).</b> Different from X: the line passed the gate, but this one dimension cannot be read from its title, organization and account. A title such as "Defense Autonomous Warfare Group" gets a domain and a technology but not-determinable for function and object.</li>
+        <li><b>Retired labels.</b> The taxonomy never deletes a label. Two labels from the first draft (B9 Special operations, E4 Enabling infrastructure) were retired in the revision and mapped forward; they stay in the file, struck through, so old codes remain interpretable.</li>
+        <li><b>Confidence (H, M, L).</b> The classifier's own stated confidence for the whole line, shown in the program elements table. 542 high, 1,534 medium, 160 low. It is self-reported, not measured.</li>
+        <li><b>Other labels</b> column: the line's codes on the other dimensions, written as <span class="code">A:A4 C:C3 D:D11 E:E6 BA:BA5 ORG:O1</span>.</li>
+      </ul>
+      <h3>Reading the tab</h3>
+      <ul>
+        <li><b>Tiles</b>: how many dimensions and labels are in use, how many program elements were classified and how many were gated, the agreement check and the taxonomy version.</li>
+        <li><b>RDT&amp;E dollars by label</b> (left bar chart): the chosen year's research money regrouped by the labels of the chosen <b>Dimension</b>. Grey is the X bar. Click a bar to select that label; it turns gold and the lines behind it are listed on the right.</li>
+        <li><b>Over time</b>: the same labels stacked across all years. Because each program element carries one fixed set of labels, the history is the history of the money in those lines, not of how they were described in each year.</li>
+        <li><b>Balance analysis: two dimensions crossed</b>: rows are the chosen dimension, columns the <b>Cross with</b> dimension. Each cell is the money in lines carrying both labels in the selected year. <b>Dollars</b> writes the amounts; <b>% of column</b> writes each cell as a share of its column total (so a cell reading 55% under OSD means 55 cents of every OSD research dollar); <b>% of row</b> does the same by row. Shading darkens with the cell's share of the largest cell (dollars mode) or its percentage. Totals run along the right edge and the bottom. Hover a cell for its full reading; click it to list only the lines behind it. Empty cells are combinations the Department does not fund, or that the exhibit cannot show.</li>
+        <li><b>Selected row, year by year</b>: a small strip under the grid that repeats the selected row (and the selected cell, if any) for the previous six years, so a change over time can be read as numbers rather than inferred from one year's grid. Bold is the year shown in the grid.</li>
+        <li><b>Program elements in the selected label</b>: the lines behind the selected bar, row or cell, with their value, the other labels and confidence. <b>Show the whole row</b> clears a cell selection.</li>
+        <li><b>Labels in this dimension</b>: every label with its definition, value, share, change and line count. The dimension's definition and coding rule sit above the table.</li>
+        <li><b>How this taxonomy was made</b>: the six steps with links to the actual artifacts (draft, critique, change log, classifier brief, all assignments, blind coding sheet) and the agreement table.</li>
+      </ul>
+      <h3>All labels in the current version</h3>
+      <div class="labels" id="helpTaxLabels"><div class="sub">Loading the label list…</div></div>
+
+      <h2 id="help-story">The guided story</h2>
+      <p>"Follow the drone money" is an eight-step scenario built for someone who does not know budgeting: a congressional staffer is asked how much the Pentagon wants for drones and autonomy, and each step shows one way the dashboard answers, and one way it cannot. Each step opens with <b>What you are looking at</b> and <b>What to notice</b>.</p>
+      <ul>
+        <li>Click <b>▶ Play the story</b>. A bar appears at the bottom with the step text, the narration controls and <b>‹ Back</b>, <b>Next ›</b> (or <b>Begin</b> on the first step) and <b>Exit</b>. The story never starts on its own.</li>
+        <li><b>Narration on/off</b> reads each step aloud in a recorded voice. The small ▶/❚❚ button pauses and resumes and the thin bar shows progress. Your choice is remembered on this device. The first click on Play or on the toggle is what allows sound to start, so turn narration on before or right after starting.</li>
+        <li><b>Arrows</b> point at the chart bar, table cell or control the narration is describing, timed to the audio (or to a timer when narration is off). Every number spoken is on screen at that moment.</li>
+        <li>When a step's narration ends, the Next button <b>pulses</b> to show it is time to move on. You can move on earlier at any time.</li>
+        <li>Keyboard: <kbd class="key">→</kbd> next, <kbd class="key">←</kbd> back, <kbd class="key">Esc</kbd> exit. The address bar shows <span class="code">#story3</span> and so on while the story runs.</li>
+        <li>Each step sets the tab and its controls for you. Leaving the story keeps the last view, so you can continue exploring from where it left off.</li>
+      </ul>
+      <p>The steps: the assignment · 1 the step-up in the research budget · 2 one line (a single program element bigger than a service's whole research budget) · 3 keywords fail · 4 the lens that refuses (the taxonomy and its not-determinable labels) · 5 two lenses at once (the cross-tab) · 6 when the record is thin (the three stages and the continuing-resolution year) · 7 the hearing list (posture-silent money by owner) · 8 where Pursestrings goes next (execution data).</p>
+
+      <h2 id="help-caveats">Caveats and limitations</h2>
+      <h3>About the data</h3>
+      <ul>
+        <li>Everything is read from the Comptroller's published Excel files by a script. The sums reconcile to each sheet's own check figure (exactly for M-1, O-1 and R-1; about five percent under for P-1, because the sheets' check figure double counts advance-procurement "Non-Add" rows). That is a consistency check, not an audit.</li>
+        <li>Lines are linked across years by exhibit, account, organization and line code. Renumbered, split or merged programs appear as separate lines; titles are taken from the most recent book that carried the line.</li>
+        <li>The FY2003 to FY2005 M-1, the FY2003 and FY2004 O-1 and the FY2003 and FY2004 C-1 were not parsed. Revolving funds and the reserve-component procurement view are not included. Classified programs appear only as their published totals.</li>
+        <li>FY2027 and FY2026 totals include mandatory and reconciliation amounts; the four continuing-resolution years carry an adjusted request in place of an enacted figure; USAspending totals include mandatory accounts and prior-year balances.</li>
+        <li>Constant dollars use a single economy-wide defense deflator, which is a rough instrument for any one account.</li>
+        <li>Nothing has been cross-checked against the printed justification books, appropriation acts or the Department's own summaries. Before any figure is quoted, trace it back through the Data &amp; methods audit table to the source file.</li>
+      </ul>
+      <h3>About the taxonomy and classifier</h3>
+      <ul>
+        <li>The taxonomy was drafted by one language model, critiqued by a second and revised once. A real taxonomy goes through several rounds with domain experts and a pilot coding exercise.</li>
+        <li>The classifier read only the title, organization, account and budget activity of each program element, not the justification narrative. It cannot see inside classified lines, cannot tell stated purpose from use, and under-counts technology families hidden behind system names.</li>
+        <li>Each program element was coded once for all twenty-seven years. The labels cannot see renaming, re-scoping, moves between owners or money shifting between projects inside a program element.</li>
+        <li>The agreement figures (raw agreement 84 to 95 percent, Cohen's kappa 0.82 to 0.92 on 61 lines) compare two language models, not a model against expert human coders, and no disagreement has been adjudicated. Confidence grades are the model's own self-assessment.</li>
+        <li>Nothing here is the Pursestrings congressional-issue taxonomy or its production classifier. Dollar totals by label should be read as "money in lines a model tagged this way", with the not-determinable and gated shares always in view.</li>
+      </ul>
+
+      <h2 id="help-glossary">Glossary</h2>
+      <dl>
+        <dt>Appropriation title</dt><dd>One of the broad categories Congress appropriates to: Military Personnel, Operation and Maintenance, Procurement, RDT&amp;E, Military Construction, Family Housing and others.</dd>
+        <dt>Exhibit (P-1, R-1, O-1, M-1, C-1)</dt><dd>The summary tables in each President's Budget listing every procurement line (P-1), research program element (R-1), operation and maintenance sub-activity group (O-1), military personnel sub-activity (M-1) and construction project (C-1).</dd>
+        <dt>Program element (PE)</dt><dd>The unit of the research budget, identified by a seven-digit code plus a letter for the owner (for example 0604539D8Z). Each has a title and a budget activity.</dd>
+        <dt>Account</dt><dd>A four-digit Treasury appropriation account within a title, such as 2040 (RDT&amp;E, Army) or 1319 (RDT&amp;E, Navy).</dd>
+        <dt>Budget activity</dt><dd>A sub-division of an account. In the R-1 it is the maturity level of the work, 01 basic research through 07 operational systems development and 08 software pilots.</dd>
+        <dt>Budget authority</dt><dd>Legal permission to commit money. Not to be confused with budget activity; the page writes "BA" only for budget activity in the taxonomy codes.</dd>
+        <dt>TOA</dt><dd>Total obligational authority, the Comptroller's measure of the value of a year's program regardless of financing.</dd>
+        <dt>Obligation, outlay</dt><dd>An obligation is a binding commitment such as a signed contract; an outlay is the payment. Outlays lag appropriations by years for procurement and construction.</dd>
+        <dt>Request, enacted, actual</dt><dd>The three columns each budget carries for a line; see <a href="#help-numbers">Reading the numbers</a>.</dd>
+        <dt>Vintage</dt><dd>The budget book a figure came from. PB2025 is one vintage of the FY2024 figures, PB2026 another.</dd>
+        <dt>Continuing resolution (CR)</dt><dd>A stopgap law that keeps agencies funded at the prior year's rate when appropriations have not passed.</dd>
+        <dt>OCO</dt><dd>Overseas Contingency Operations, the war funding shown separately from the base budget between 2010 and 2021 and summed into the totals here.</dd>
+        <dt>Function 050</dt><dd>OMB's "national defense" category, which adds Energy Department nuclear programs and a few other agencies to the Department of Defense.</dd>
+        <dt>Green Book</dt><dd>National Defense Budget Estimates, the Comptroller's annual statistical volume with series back to 1948.</dd>
+        <dt>CAGR</dt><dd>Compound annual growth rate: the steady yearly rate that would turn the earlier value into the later one.</dd>
+        <dt>Dimension, label, code</dt><dd>In the taxonomy a dimension is a question asked of every line (where does it operate?), a label is one possible answer (Space), and the code is its short identifier (A4).</dd>
+        <dt>Gate</dt><dd>The first classifier step that sets aside lines whose titles say too little to classify (code X).</dd>
+        <dt>Cohen's kappa (κ)</dt><dd>A measure of agreement between two coders that discounts agreement expected by chance; 1 is perfect, 0 is chance.</dd>
+      </dl>
+
+      <h2 id="help-trouble">Troubleshooting</h2>
+      <ul>
+        <li><b>Nothing loads, or the loading bar stalls.</b> The page fetches about 1.5 MB of compressed data on first open. Reload once; if it still stalls, check that the browser is not blocking scripts from cdnjs.cloudflare.com and cdn.jsdelivr.net, which supply the charting and sign-in libraries.</li>
+        <li><b>No sound.</b> Check that <b>Narration on</b> is selected in the story bar and the speakers are up. On an iPhone or iPad, the side silent switch mutes web audio. If a clip still will not start, press the small ▶ in the story bar once.</li>
+        <li><b>Sign-in fails.</b> Usernames are the bare name you were given, without an email domain. Passwords are case sensitive. "Forgot password?" only works for accounts that are email addresses.</li>
+        <li><b>Charts look cramped.</b> The page is laid out for a laptop or desktop window. It works on a phone but the cross-tab and the story bar are a tight fit.</li>
+        <li><b>Something looks wrong in the data.</b> It may well be. Note the tab, the settings and the row, and send it to the address in the footer.</li>
+      </ul>
+    </div>
+  </section>
 </main>
 <div id="ptrLayer" aria-hidden="true"></div>
 <div id="storybar" hidden><div class="in"><div class="step" id="storyStep"></div><div class="cap" id="storyCap"></div><div class="nar"><button id="narToggle" type="button" aria-pressed="false" title="Read each step aloud">🔊 Narration off</button><button id="narPlay" type="button" hidden title="Play or pause">▶</button><div class="bar" hidden id="narBar"><i id="narFill"></i></div></div><div class="btns"><button id="storyPrev" type="button">‹ Back</button><button id="storyNext" type="button" class="primary">Next ›</button><button id="storyExit" type="button">Exit</button></div></div></div>
-<footer><div class="wrap">Built as a Pursestrings demonstration, Sam Nunn School of International Affairs, Georgia Tech. All figures are as published by the sources named above; this page adds no estimates of its own. Questions: tchaudhary@gatech.edu</div></footer>
+<footer><div class="wrap">Built as a Pursestrings demonstration, Sam Nunn School of International Affairs, Georgia Tech. All figures are as published by the sources named above; this page adds no estimates of its own. <a href="#help">Help and caveats</a>. Questions: tchaudhary@gatech.edu</div></footer>
 
 <script>
 (async function(){
@@ -971,6 +1184,13 @@ function renderData(){
   sortable($('#colTable'), rows, [{key:'file', label:'File'}, {key:'fy', label:'FY', num:true}, {key:'col', label:'Column used'}, {key:'sum', label:'Parsed sum ($K)', num:true}, {key:'check', label:'Sheet check figure ($K)', num:true}], (tb, rs) => { for (const r of rs){ const tr = document.createElement('tr'); td(tr, r.file); td(tr, String(r.fy), 'num'); td(tr, r.col); td(tr, r.sum == null ? '–' : r.sum.toLocaleString(), 'num'); td(tr, r.check == null ? '–' : Math.round(r.check).toLocaleString(), 'num'); tb.appendChild(tr); } });
 }
 RENDER.data = renderData;
+
+// ===================== HELP =====================
+async function renderHelp(){ const box = $('#helpTaxLabels'); if (!box || box.dataset.done) return; const T = await loadTaxonomy(); if (!T){ box.innerHTML = '<div class="sub">The taxonomy file is not attached to this page.</div>'; return; }
+  const parts = []; for (const d of T.dims){ parts.push(`<div style="margin-top:8px"><b>${esc(d.code)}</b> · <span style="font-weight:600">${esc(d.label)}</span></div>`); for (const it of d.items){ const ret = it.retired || /retired/i.test(it.label || ''); parts.push(`<div class="${ret ? 'ret' : ''}"><b>${esc(it.code)}</b> ${esc((it.label || '').replace(/\s*\(retired\)\s*$/i, ''))}${ret ? ' (retired, mapped forward)' : ''}</div>`); } if (d.code !== 'ORG' && d.code !== 'BA') parts.push('<div><b>X</b> Unclassifiable (failed the gate)</div>'); }
+  box.innerHTML = parts.join(''); box.dataset.done = '1'; }
+RENDER.help = renderHelp;
+
 
 // ===================== GUIDED STORY =====================
 // Seven beats that walk one question through the data: how much is the Department asking for autonomy and drones, how did it get here, and what can oversight actually see?
