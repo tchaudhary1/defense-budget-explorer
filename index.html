@@ -193,6 +193,10 @@ body.story-on main{padding-bottom:230px}
 @keyframes ptrBob{0%,100%{transform:translate(0,0)}50%{transform:translate(var(--bx,0),var(--by,0))}}
 .ptr-target{outline:3px solid var(--buzz) !important;outline-offset:3px;border-radius:6px;transition:outline-color .3s}
 @media (prefers-reduced-motion: reduce){.ptr{animation:ptrIn .3s ease-out forwards}}
+
+#storybar button.flash{animation:nextFlash 1.1s ease-in-out infinite;box-shadow:0 0 0 0 rgba(234,170,0,.7)}
+@keyframes nextFlash{0%{box-shadow:0 0 0 0 rgba(234,170,0,.75);transform:scale(1)}60%{box-shadow:0 0 0 12px rgba(234,170,0,0);transform:scale(1.06)}100%{box-shadow:0 0 0 0 rgba(234,170,0,0);transform:scale(1)}}
+@media (prefers-reduced-motion: reduce){#storybar button.flash{animation:none;outline:3px solid #fff}}
 footer{border-top:1px solid var(--rule);color:var(--muted);font-size:12px;padding:16px 0 28px}
 kbd.code{font-family:ui-monospace,Consolas,monospace;font-size:12px;background:var(--surface-2);padding:1px 5px;border-radius:4px}
 .themebtn{border:1px solid rgba(255,255,255,.35);background:transparent;color:#fff;border-radius:6px;padding:4px 10px;cursor:pointer;font-size:12px;margin-left:10px}
@@ -893,6 +897,10 @@ const STORY = [
 ];
 const story = {i: -1};
 
+let flashTimer = null;
+function nextFlash(on){ const b = $('#storyNext'); clearTimeout(flashTimer); if (on){ b.classList.add('flash'); b.title = 'The narration for this step has finished. Click when you are ready to continue.'; } else { b.classList.remove('flash'); b.title = ''; } }
+
+
 // ---------- animated pointers ----------
 // Each story step has a few pointers: an arrow plus a short label that appears when the narration reaches that point
 // (or on a timer when narration is off), pointing at the element or chart mark the words refer to.
@@ -933,9 +941,9 @@ function ptrShow(p){
     const barH2 = bar.hidden ? 0 : bar.getBoundingClientRect().height; x = Math.max(8, Math.min(innerWidth - nw - 8, x)); y = Math.max(8, Math.min(innerHeight - barH2 - nh - 8, y)); node.style.left = x + 'px'; node.style.top = y + 'px'; PTR.raf = requestAnimationFrame(place); };
   setTimeout(place, 420); setTimeout(() => { const r = ptrResolve(p); if (r) ptrEnsureVisible(r.rect); place(); }, 950); place();
 }
-function ptrSchedule(i){ ptrClear(); const list = POINTERS[i] || []; if (!list.length) return;
+function ptrSchedule(i){ ptrClear(); const list = POINTERS[i] || []; if (!list.length){ if (!NAR.on) PTR.timers.push(setTimeout(() => nextFlash(true), 20000)); return; }
   if (NAR.on){ PTR.pending = list.slice(); }  // fired from the audio clock in narPlay's timeupdate
-  else { list.forEach(p => PTR.timers.push(setTimeout(() => ptrShow(p), 900 + p.t * 1000))); PTR.timers.push(setTimeout(ptrHide, 900 + (list[list.length-1].t + 12) * 1000)); } }
+  else { list.forEach(p => PTR.timers.push(setTimeout(() => ptrShow(p), 900 + p.t * 1000))); PTR.timers.push(setTimeout(ptrHide, 900 + (list[list.length-1].t + 12) * 1000)); PTR.timers.push(setTimeout(() => nextFlash(true), 900 + (list[list.length-1].t + 8) * 1000)); } }
 function ptrTick(time){ while (PTR.pending.length && PTR.pending[0].t <= time){ ptrShow(PTR.pending.shift()); } }
 window.__dbe = { ptrShow, ptrHide, POINTERS, storyGo: (i) => storyGo(i), ptrLive: () => PTR.live && PTR.live.p.text };
 // ---------- end pointers ----------
@@ -958,7 +966,7 @@ async function narUrl(i){ const name = `narration/step${i}.mp3`; if (NAR.urls[na
   NAR.urls[name] = url; return url; }
 function narStop(){ if (NAR.audio){ NAR.audio.pause(); NAR.audio.src = ''; NAR.audio = null; } $('#narPlay').textContent = '▶'; $('#narFill').style.width = '0'; }
 async function narPlay(i){ narStop(); if (!NAR.on) return; NAR.step = i;
-  try { const url = await narUrl(i); if (NAR.step !== i || !NAR.on) return; const a = new Audio(url); NAR.audio = a; a.addEventListener('timeupdate', () => { if (a.duration) $('#narFill').style.width = (a.currentTime / a.duration * 100).toFixed(1) + '%'; ptrTick(a.currentTime); }); a.addEventListener('ended', () => { $('#narPlay').textContent = '▶'; setTimeout(ptrHide, 6000); }); a.addEventListener('play', () => { $('#narPlay').textContent = '❚❚'; }); a.addEventListener('pause', () => { $('#narPlay').textContent = '▶'; }); await a.play(); narUrl(i + 1).catch(() => {}); }
+  try { const url = await narUrl(i); if (NAR.step !== i || !NAR.on) return; const a = new Audio(url); NAR.audio = a; a.addEventListener('timeupdate', () => { if (a.duration) $('#narFill').style.width = (a.currentTime / a.duration * 100).toFixed(1) + '%'; ptrTick(a.currentTime); }); a.addEventListener('ended', () => { $('#narPlay').textContent = '▶'; setTimeout(ptrHide, 6000); if (story.i === i) nextFlash(true); }); a.addEventListener('play', () => { $('#narPlay').textContent = '❚❚'; }); a.addEventListener('pause', () => { $('#narPlay').textContent = '▶'; }); await a.play(); narUrl(i + 1).catch(() => {}); }
   catch (e) { toast('Narration for this step is not available.'); } }
 function narUi(){ const t = $('#narToggle'); t.setAttribute('aria-pressed', NAR.on ? 'true' : 'false'); t.textContent = NAR.on ? '🔊 Narration on' : '🔇 Narration off'; $('#narPlay').hidden = !NAR.on; $('#narBar').hidden = !NAR.on; }
 $('#narToggle').addEventListener('click', () => { NAR.on = !NAR.on; try { localStorage.setItem('dbe-narration', NAR.on ? 'on' : 'off'); } catch(e){} narUi(); if (story.i >= 0){ ptrSchedule(story.i); if (NAR.on) narPlay(story.i); else narStop(); } });
@@ -974,12 +982,13 @@ function storyGo(i){
   setTimeout(() => ptrSchedule(i), st.tab === 'taxonomy' ? 1100 : 500);
   setTimeout(() => ptrSchedule(i), st.tab === 'taxonomy' ? 1100 : 500);
   setTimeout(() => ptrSchedule(i), st.tab === 'taxonomy' ? 1100 : 500);
+  nextFlash(false);
   setTimeout(() => ptrSchedule(i), st.tab === 'taxonomy' ? 1100 : 500);
   narPlay(i);
   $('#storyPrev').disabled = i === 0; $('#storyNext').textContent = i === STORY.length - 1 ? 'Finish' : (i === 0 ? 'Begin ›' : 'Next ›');
   setTimeout(() => { const el = $(st.target); const card = el && el.closest('.card, .grid, .filters'); if (card){ card.scrollIntoView({behavior:'smooth', block:'center'}); card.classList.remove('pulse'); void card.offsetWidth; card.classList.add('pulse'); } }, st.tab === 'taxonomy' ? 900 : 350);
 }
-function storyExit(){ narStop(); ptrClear(); story.i = -1; bar.hidden = true; document.body.classList.remove('story-on'); $$('.pulse').forEach(e => e.classList.remove('pulse')); try { history.replaceState(null, '', '#' + activeTab); } catch(e){} }
+function storyExit(){ nextFlash(false); narStop(); ptrClear(); story.i = -1; bar.hidden = true; document.body.classList.remove('story-on'); $$('.pulse').forEach(e => e.classList.remove('pulse')); try { history.replaceState(null, '', '#' + activeTab); } catch(e){} }
 $('#storyBtn').addEventListener('click', () => storyGo(0));
 $('#storyNext').addEventListener('click', () => storyGo(story.i + 1));
 $('#storyPrev').addEventListener('click', () => storyGo(story.i - 1));
