@@ -111,8 +111,10 @@ table.data td.name{max-width:420px}
 #toast{position:fixed;left:50%;bottom:18px;transform:translateX(-50%) translateY(20px);background:var(--navy);color:#fff;padding:10px 16px;border-radius:8px;font-size:13px;opacity:0;pointer-events:none;transition:opacity .2s,transform .2s;max-width:90vw;z-index:50}#toast.show{opacity:1;transform:translateX(-50%)}
 
 #storybar{position:fixed;left:0;right:0;bottom:0;z-index:40;background:var(--head-bg);color:#fff;border-top:3px solid var(--buzz);padding:12px 16px calc(12px + env(safe-area-inset-bottom, 0px));box-shadow:0 -6px 24px rgba(0,0,0,.25)}
-#storybar .in{max-width:1360px;margin:0 auto;display:flex;gap:16px;align-items:center;flex-wrap:wrap}
-#storybar .step{font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--buzz);font-weight:700;white-space:nowrap}
+#storybar .in{max-width:1360px;margin:0 auto;display:grid;grid-template-columns:150px minmax(0,1fr) auto;gap:12px 18px;align-items:center}
+#storybar .side{display:flex;flex-direction:column;gap:8px;align-items:flex-end}
+@media (max-width:860px){#storybar .in{grid-template-columns:1fr}#storybar .side{align-items:flex-start}}
+#storybar .step{font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--buzz);font-weight:700;line-height:1.35}
 #storybar .cap{flex:1 1 520px;font-size:13.5px;line-height:1.45;min-width:0;max-height:21vh;overflow:auto;padding-right:6px;scrollbar-width:thin}
 #storybar .cap.long::after{content:'scroll for more ↓';display:block;font-size:11px;color:#D6DBD4;opacity:.8;margin-top:4px}
 #storybar .cap p{margin:0 0 6px}
@@ -145,7 +147,7 @@ body.story-on main{padding-bottom:calc(21vh + 190px)}
 .acct{display:inline-flex;gap:6px;align-items:center;margin-left:10px;font-size:12px;color:#D6DBD4}
 .acct button{border:1px solid rgba(255,255,255,.35);background:transparent;color:#fff;border-radius:6px;padding:4px 10px;cursor:pointer;font-size:12px}
 
-#storybar .nar{display:flex;gap:8px;align-items:center;flex:0 0 auto;font-size:12px;color:#D6DBD4}
+#storybar .nar{display:flex;gap:8px;align-items:center;flex:0 0 auto;font-size:12px;color:#D6DBD4;justify-content:flex-end;flex-wrap:wrap}
 #storybar .nar button{border:1px solid rgba(255,255,255,.4);background:transparent;color:#fff;border-radius:6px;padding:6px 10px;cursor:pointer;font-size:12px}
 #storybar .nar button[aria-pressed="true"]{background:var(--buzz);color:#1C2430;border-color:var(--buzz);font-weight:700}
 #storybar .nar .bar{width:90px;height:4px;background:rgba(255,255,255,.25);border-radius:2px;overflow:hidden}
@@ -618,7 +620,7 @@ kbd.code{font-family:ui-monospace,Consolas,monospace;font-size:12px;background:v
   </section>
 </main>
 <div id="ptrLayer" aria-hidden="true"></div>
-<div id="storybar" hidden><div class="in"><div class="step" id="storyStep"></div><div class="cap" id="storyCap"></div><div class="nar"><div class="modes" id="storyMode" title="Short tour or full version"><button type="button" data-v="short" aria-pressed="false">Short</button><button type="button" data-v="full" aria-pressed="false">Full</button></div><button id="narToggle" type="button" aria-pressed="false" title="Read each step aloud">🔊 Narration off</button><button id="narPlay" type="button" hidden title="Play or pause">▶</button><div class="bar" hidden id="narBar"><i id="narFill"></i></div></div><div class="btns"><button id="storyPrev" type="button">‹ Back</button><button id="storyNext" type="button" class="primary">Next ›</button><button id="storyExit" type="button">Exit</button></div></div></div>
+<div id="storybar" hidden><div class="in"><div class="step" id="storyStep"></div><div class="cap" id="storyCap"></div><div class="side"><div class="nar"><div class="modes" id="storyMode" title="Short tour or full version"><button type="button" data-v="short" aria-pressed="false">Short</button><button type="button" data-v="full" aria-pressed="false">Full</button></div><button id="narToggle" type="button" aria-pressed="false" title="Read each step aloud">🔊 Narration off</button><button id="narPlay" type="button" hidden title="Play or pause">▶</button><div class="bar" hidden id="narBar"><i id="narFill"></i></div></div><div class="btns"><button id="storyPrev" type="button">‹ Back</button><button id="storyNext" type="button" class="primary">Next ›</button><button id="storyExit" type="button">Exit</button></div></div></div></div>
 <footer><div class="wrap">Built as a Pursestrings demonstration, Sam Nunn School of International Affairs, Georgia Tech. All figures are as published by the sources named above; this page adds no estimates of its own. <a href="#help">Help and caveats</a>. Questions: tchaudhary@gatech.edu</div></footer>
 
 <script>
@@ -1250,7 +1252,7 @@ const PTR = { timers: [], live: null, raf: 0, pending: [], hideTimer: 0 };
 function ptrClear(){ PTR.timers.forEach(clearTimeout); PTR.timers = []; PTR.pending = []; ptrHide(); }
 function ptrHide(){ if (PTR.live){ PTR.live.node.remove(); if (PTR.live.el) PTR.live.el.classList.remove('ptr-target'); PTR.live = null; } cancelAnimationFrame(PTR.raf); }
 function ptrEnsureVisible(r){ const barH = bar.hidden ? 0 : bar.getBoundingClientRect().height; const visTop = 90, visBottom = innerHeight - barH - 30; if (r.top < visTop || r.bottom > visBottom){ const want = visTop + (visBottom - visTop) / 2; window.scrollTo({top: window.scrollY + (r.top + Math.min(r.height, visBottom - visTop) / 2) - want, behavior: 'auto'}); return true; } return false; }
-function ptrResolve(p){ let t; try { t = p.target(); } catch(e){ t = null; } if (!t) return null; if (t.rect) return t; return {rect: t.getBoundingClientRect(), el: t}; }
+function ptrResolve(p){ let t; try { t = p.target(); } catch(e){ t = null; } if (!t) return null; if (t.rect) return t; const r = t.getBoundingClientRect(); if (!r.width && !r.height) return null; return {rect: r, el: t}; }
 function ptrShow(p){
   const res = ptrResolve(p); if (!res) return; ptrHide();
   const el = res.el; ptrEnsureVisible(res.rect);
@@ -1349,6 +1351,7 @@ function storyChoose(){ story.i = -1; document.body.classList.add('story-on'); b
 function storyGo(i){
   if (i < 0 || i >= STORY.length) return storyExit();
   if (!story.mode) return storyChoose();
+  clearTimeout(PTR.hideTimer); ptrClear();
   $('#storyPrev').hidden = false; $('#storyNext').hidden = false; $$('#storyMode button').forEach(b => b.setAttribute('aria-pressed', b.dataset.v === story.mode ? 'true' : 'false')); narUi();
   story.i = i; const st = STORY[i]; document.body.classList.add('story-on'); bar.hidden = false; logEv('story', { step: i, title: st.title });
   st.setup(); showTab(st.tab); try { history.replaceState(null, '', '#story' + i); } catch(e){}
