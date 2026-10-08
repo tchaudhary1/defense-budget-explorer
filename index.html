@@ -124,7 +124,7 @@ table.data td.name{max-width:420px}
 #storybar button{border:1px solid rgba(255,255,255,.4);background:transparent;color:#fff;border-radius:6px;padding:7px 12px;cursor:pointer;font-size:13px}
 #storybar button.primary{background:var(--buzz);color:#1C2430;border-color:var(--buzz);font-weight:700}
 #storybar button:disabled{opacity:.4;cursor:default}
-body.story-on main{padding-bottom:min(34vh,300px)}
+body.story-on main{padding-bottom:calc(21vh + 190px)}
 .pulse{outline:3px solid var(--buzz);outline-offset:4px;border-radius:12px;animation:pulse 1.6s ease-out 2}
 @keyframes pulse{0%{outline-color:var(--buzz)}100%{outline-color:transparent}}
 .storybtn{border:1px solid var(--buzz);background:var(--buzz);color:#1C2430;border-radius:6px;padding:4px 12px;cursor:pointer;font-size:12px;font-weight:700;margin-left:10px}
@@ -162,141 +162,9 @@ body.story-on main{padding-bottom:min(34vh,300px)}
 .ptr-target{outline:3px solid var(--buzz) !important;outline-offset:3px;border-radius:6px;transition:outline-color .3s}
 @media (prefers-reduced-motion: reduce){.ptr{animation:ptrIn .3s ease-out forwards}}
 
-#ptrLayer{position:fixed;inset:0;pointer-events:none;z-index:45}
-.ptr{position:absolute;display:flex;align-items:center;gap:6px;opacity:0;transform:translate(0,0);animation:ptrIn .5s ease-out forwards, ptrBob 1.6s ease-in-out .5s infinite}
-.ptr.left{flex-direction:row}.ptr.right{flex-direction:row-reverse}.ptr.top{flex-direction:column}.ptr.bottom{flex-direction:column-reverse}
-.ptr .tag{background:var(--buzz);color:#1C2430;font-weight:700;font-size:13px;line-height:1.25;padding:6px 10px;border-radius:8px;box-shadow:0 6px 18px rgba(0,0,0,.25);max-width:260px}
-.ptr svg{width:44px;height:44px;flex:0 0 auto;filter:drop-shadow(0 3px 6px rgba(0,0,0,.3))}
-.ptr.top svg,.ptr.bottom svg{width:40px;height:40px}
-@keyframes ptrIn{from{opacity:0;transform:translate(var(--dx,0),var(--dy,0)) scale(.9)}to{opacity:1;transform:translate(0,0) scale(1)}}
-@keyframes ptrBob{0%,100%{transform:translate(0,0)}50%{transform:translate(var(--bx,0),var(--by,0))}}
-.ptr-target{outline:3px solid var(--buzz) !important;outline-offset:3px;border-radius:6px;transition:outline-color .3s}
-@media (prefers-reduced-motion: reduce){.ptr{animation:ptrIn .3s ease-out forwards}}
-
-#ptrLayer{position:fixed;inset:0;pointer-events:none;z-index:45}
-.ptr{position:absolute;display:flex;align-items:center;gap:6px;opacity:0;transform:translate(0,0);animation:ptrIn .5s ease-out forwards, ptrBob 1.6s ease-in-out .5s infinite}
-.ptr.left{flex-direction:row}.ptr.right{flex-direction:row-reverse}.ptr.top{flex-direction:column}.ptr.bottom{flex-direction:column-reverse}
-.ptr .tag{background:var(--buzz);color:#1C2430;font-weight:700;font-size:13px;line-height:1.25;padding:6px 10px;border-radius:8px;box-shadow:0 6px 18px rgba(0,0,0,.25);max-width:260px}
-.ptr svg{width:44px;height:44px;flex:0 0 auto;filter:drop-shadow(0 3px 6px rgba(0,0,0,.3))}
-.ptr.top svg,.ptr.bottom svg{width:40px;height:40px}
-@keyframes ptrIn{from{opacity:0;transform:translate(var(--dx,0),var(--dy,0)) scale(.9)}to{opacity:1;transform:translate(0,0) scale(1)}}
-@keyframes ptrBob{0%,100%{transform:translate(0,0)}50%{transform:translate(var(--bx,0),var(--by,0))}}
-.ptr-target{outline:3px solid var(--buzz) !important;outline-offset:3px;border-radius:6px;transition:outline-color .3s}
-@media (prefers-reduced-motion: reduce){.ptr{animation:ptrIn .3s ease-out forwards}}
-
-#ptrLayer{position:fixed;inset:0;pointer-events:none;z-index:45}
-.ptr{position:absolute;display:flex;align-items:center;gap:6px;opacity:0;transform:translate(0,0);animation:ptrIn .5s ease-out forwards, ptrBob 1.6s ease-in-out .5s infinite}
-.ptr.left{flex-direction:row}.ptr.right{flex-direction:row-reverse}.ptr.top{flex-direction:column}.ptr.bottom{flex-direction:column-reverse}
-.ptr .tag{background:var(--buzz);color:#1C2430;font-weight:700;font-size:13px;line-height:1.25;padding:6px 10px;border-radius:8px;box-shadow:0 6px 18px rgba(0,0,0,.25);max-width:260px}
-.ptr svg{width:44px;height:44px;flex:0 0 auto;filter:drop-shadow(0 3px 6px rgba(0,0,0,.3))}
-.ptr.top svg,.ptr.bottom svg{width:40px;height:40px}
-@keyframes ptrIn{from{opacity:0;transform:translate(var(--dx,0),var(--dy,0)) scale(.9)}to{opacity:1;transform:translate(0,0) scale(1)}}
-@keyframes ptrBob{0%,100%{transform:translate(0,0)}50%{transform:translate(var(--bx,0),var(--by,0))}}
-.ptr-target{outline:3px solid var(--buzz) !important;outline-offset:3px;border-radius:6px;transition:outline-color .3s}
-@media (prefers-reduced-motion: reduce){.ptr{animation:ptrIn .3s ease-out forwards}}
-
 #storybar button.flash{animation:nextFlash 1.1s ease-in-out infinite;box-shadow:0 0 0 0 rgba(234,170,0,.7)}
 @keyframes nextFlash{0%{box-shadow:0 0 0 0 rgba(234,170,0,.75);transform:scale(1)}60%{box-shadow:0 0 0 12px rgba(234,170,0,0);transform:scale(1.06)}100%{box-shadow:0 0 0 0 rgba(234,170,0,0);transform:scale(1)}}
 @media (prefers-reduced-motion: reduce){#storybar button.flash{animation:none;outline:3px solid #fff}}
-
-#ptrLayer{position:fixed;inset:0;pointer-events:none;z-index:45}
-.ptr{position:absolute;display:flex;align-items:center;gap:6px;opacity:0;transform:translate(0,0);animation:ptrIn .5s ease-out forwards, ptrBob 1.6s ease-in-out .5s infinite}
-.ptr.left{flex-direction:row}.ptr.right{flex-direction:row-reverse}.ptr.top{flex-direction:column}.ptr.bottom{flex-direction:column-reverse}
-.ptr .tag{background:var(--buzz);color:#1C2430;font-weight:700;font-size:13px;line-height:1.25;padding:6px 10px;border-radius:8px;box-shadow:0 6px 18px rgba(0,0,0,.25);max-width:260px}
-.ptr svg{width:44px;height:44px;flex:0 0 auto;filter:drop-shadow(0 3px 6px rgba(0,0,0,.3))}
-.ptr.top svg,.ptr.bottom svg{width:40px;height:40px}
-@keyframes ptrIn{from{opacity:0;transform:translate(var(--dx,0),var(--dy,0)) scale(.9)}to{opacity:1;transform:translate(0,0) scale(1)}}
-@keyframes ptrBob{0%,100%{transform:translate(0,0)}50%{transform:translate(var(--bx,0),var(--by,0))}}
-.ptr-target{outline:3px solid var(--buzz) !important;outline-offset:3px;border-radius:6px;transition:outline-color .3s}
-@media (prefers-reduced-motion: reduce){.ptr{animation:ptrIn .3s ease-out forwards}}
-
-#ptrLayer{position:fixed;inset:0;pointer-events:none;z-index:45}
-.ptr{position:absolute;display:flex;align-items:center;gap:6px;opacity:0;transform:translate(0,0);animation:ptrIn .5s ease-out forwards, ptrBob 1.6s ease-in-out .5s infinite}
-.ptr.left{flex-direction:row}.ptr.right{flex-direction:row-reverse}.ptr.top{flex-direction:column}.ptr.bottom{flex-direction:column-reverse}
-.ptr .tag{background:var(--buzz);color:#1C2430;font-weight:700;font-size:13px;line-height:1.25;padding:6px 10px;border-radius:8px;box-shadow:0 6px 18px rgba(0,0,0,.25);max-width:260px}
-.ptr svg{width:44px;height:44px;flex:0 0 auto;filter:drop-shadow(0 3px 6px rgba(0,0,0,.3))}
-.ptr.top svg,.ptr.bottom svg{width:40px;height:40px}
-@keyframes ptrIn{from{opacity:0;transform:translate(var(--dx,0),var(--dy,0)) scale(.9)}to{opacity:1;transform:translate(0,0) scale(1)}}
-@keyframes ptrBob{0%,100%{transform:translate(0,0)}50%{transform:translate(var(--bx,0),var(--by,0))}}
-.ptr-target{outline:3px solid var(--buzz) !important;outline-offset:3px;border-radius:6px;transition:outline-color .3s}
-@media (prefers-reduced-motion: reduce){.ptr{animation:ptrIn .3s ease-out forwards}}
-
-#ptrLayer{position:fixed;inset:0;pointer-events:none;z-index:45}
-.ptr{position:absolute;display:flex;align-items:center;gap:6px;opacity:0;transform:translate(0,0);animation:ptrIn .5s ease-out forwards, ptrBob 1.6s ease-in-out .5s infinite}
-.ptr.left{flex-direction:row}.ptr.right{flex-direction:row-reverse}.ptr.top{flex-direction:column}.ptr.bottom{flex-direction:column-reverse}
-.ptr .tag{background:var(--buzz);color:#1C2430;font-weight:700;font-size:13px;line-height:1.25;padding:6px 10px;border-radius:8px;box-shadow:0 6px 18px rgba(0,0,0,.25);max-width:260px}
-.ptr svg{width:44px;height:44px;flex:0 0 auto;filter:drop-shadow(0 3px 6px rgba(0,0,0,.3))}
-.ptr.top svg,.ptr.bottom svg{width:40px;height:40px}
-@keyframes ptrIn{from{opacity:0;transform:translate(var(--dx,0),var(--dy,0)) scale(.9)}to{opacity:1;transform:translate(0,0) scale(1)}}
-@keyframes ptrBob{0%,100%{transform:translate(0,0)}50%{transform:translate(var(--bx,0),var(--by,0))}}
-.ptr-target{outline:3px solid var(--buzz) !important;outline-offset:3px;border-radius:6px;transition:outline-color .3s}
-@media (prefers-reduced-motion: reduce){.ptr{animation:ptrIn .3s ease-out forwards}}
-
-#ptrLayer{position:fixed;inset:0;pointer-events:none;z-index:45}
-.ptr{position:absolute;display:flex;align-items:center;gap:6px;opacity:0;transform:translate(0,0);animation:ptrIn .5s ease-out forwards, ptrBob 1.6s ease-in-out .5s infinite}
-.ptr.left{flex-direction:row}.ptr.right{flex-direction:row-reverse}.ptr.top{flex-direction:column}.ptr.bottom{flex-direction:column-reverse}
-.ptr .tag{background:var(--buzz);color:#1C2430;font-weight:700;font-size:13px;line-height:1.25;padding:6px 10px;border-radius:8px;box-shadow:0 6px 18px rgba(0,0,0,.25);max-width:260px}
-.ptr svg{width:44px;height:44px;flex:0 0 auto;filter:drop-shadow(0 3px 6px rgba(0,0,0,.3))}
-.ptr.top svg,.ptr.bottom svg{width:40px;height:40px}
-@keyframes ptrIn{from{opacity:0;transform:translate(var(--dx,0),var(--dy,0)) scale(.9)}to{opacity:1;transform:translate(0,0) scale(1)}}
-@keyframes ptrBob{0%,100%{transform:translate(0,0)}50%{transform:translate(var(--bx,0),var(--by,0))}}
-.ptr-target{outline:3px solid var(--buzz) !important;outline-offset:3px;border-radius:6px;transition:outline-color .3s}
-@media (prefers-reduced-motion: reduce){.ptr{animation:ptrIn .3s ease-out forwards}}
-
-#ptrLayer{position:fixed;inset:0;pointer-events:none;z-index:45}
-.ptr{position:absolute;display:flex;align-items:center;gap:6px;opacity:0;transform:translate(0,0);animation:ptrIn .5s ease-out forwards, ptrBob 1.6s ease-in-out .5s infinite}
-.ptr.left{flex-direction:row}.ptr.right{flex-direction:row-reverse}.ptr.top{flex-direction:column}.ptr.bottom{flex-direction:column-reverse}
-.ptr .tag{background:var(--buzz);color:#1C2430;font-weight:700;font-size:13px;line-height:1.25;padding:6px 10px;border-radius:8px;box-shadow:0 6px 18px rgba(0,0,0,.25);max-width:260px}
-.ptr svg{width:44px;height:44px;flex:0 0 auto;filter:drop-shadow(0 3px 6px rgba(0,0,0,.3))}
-.ptr.top svg,.ptr.bottom svg{width:40px;height:40px}
-@keyframes ptrIn{from{opacity:0;transform:translate(var(--dx,0),var(--dy,0)) scale(.9)}to{opacity:1;transform:translate(0,0) scale(1)}}
-@keyframes ptrBob{0%,100%{transform:translate(0,0)}50%{transform:translate(var(--bx,0),var(--by,0))}}
-.ptr-target{outline:3px solid var(--buzz) !important;outline-offset:3px;border-radius:6px;transition:outline-color .3s}
-@media (prefers-reduced-motion: reduce){.ptr{animation:ptrIn .3s ease-out forwards}}
-
-#ptrLayer{position:fixed;inset:0;pointer-events:none;z-index:45}
-.ptr{position:absolute;display:flex;align-items:center;gap:6px;opacity:0;transform:translate(0,0);animation:ptrIn .5s ease-out forwards, ptrBob 1.6s ease-in-out .5s infinite}
-.ptr.left{flex-direction:row}.ptr.right{flex-direction:row-reverse}.ptr.top{flex-direction:column}.ptr.bottom{flex-direction:column-reverse}
-.ptr .tag{background:var(--buzz);color:#1C2430;font-weight:700;font-size:13px;line-height:1.25;padding:6px 10px;border-radius:8px;box-shadow:0 6px 18px rgba(0,0,0,.25);max-width:260px}
-.ptr svg{width:44px;height:44px;flex:0 0 auto;filter:drop-shadow(0 3px 6px rgba(0,0,0,.3))}
-.ptr.top svg,.ptr.bottom svg{width:40px;height:40px}
-@keyframes ptrIn{from{opacity:0;transform:translate(var(--dx,0),var(--dy,0)) scale(.9)}to{opacity:1;transform:translate(0,0) scale(1)}}
-@keyframes ptrBob{0%,100%{transform:translate(0,0)}50%{transform:translate(var(--bx,0),var(--by,0))}}
-.ptr-target{outline:3px solid var(--buzz) !important;outline-offset:3px;border-radius:6px;transition:outline-color .3s}
-@media (prefers-reduced-motion: reduce){.ptr{animation:ptrIn .3s ease-out forwards}}
-
-#ptrLayer{position:fixed;inset:0;pointer-events:none;z-index:45}
-.ptr{position:absolute;display:flex;align-items:center;gap:6px;opacity:0;transform:translate(0,0);animation:ptrIn .5s ease-out forwards, ptrBob 1.6s ease-in-out .5s infinite}
-.ptr.left{flex-direction:row}.ptr.right{flex-direction:row-reverse}.ptr.top{flex-direction:column}.ptr.bottom{flex-direction:column-reverse}
-.ptr .tag{background:var(--buzz);color:#1C2430;font-weight:700;font-size:13px;line-height:1.25;padding:6px 10px;border-radius:8px;box-shadow:0 6px 18px rgba(0,0,0,.25);max-width:260px}
-.ptr svg{width:44px;height:44px;flex:0 0 auto;filter:drop-shadow(0 3px 6px rgba(0,0,0,.3))}
-.ptr.top svg,.ptr.bottom svg{width:40px;height:40px}
-@keyframes ptrIn{from{opacity:0;transform:translate(var(--dx,0),var(--dy,0)) scale(.9)}to{opacity:1;transform:translate(0,0) scale(1)}}
-@keyframes ptrBob{0%,100%{transform:translate(0,0)}50%{transform:translate(var(--bx,0),var(--by,0))}}
-.ptr-target{outline:3px solid var(--buzz) !important;outline-offset:3px;border-radius:6px;transition:outline-color .3s}
-@media (prefers-reduced-motion: reduce){.ptr{animation:ptrIn .3s ease-out forwards}}
-
-#ptrLayer{position:fixed;inset:0;pointer-events:none;z-index:45}
-.ptr{position:absolute;display:flex;align-items:center;gap:6px;opacity:0;transform:translate(0,0);animation:ptrIn .5s ease-out forwards, ptrBob 1.6s ease-in-out .5s infinite}
-.ptr.left{flex-direction:row}.ptr.right{flex-direction:row-reverse}.ptr.top{flex-direction:column}.ptr.bottom{flex-direction:column-reverse}
-.ptr .tag{background:var(--buzz);color:#1C2430;font-weight:700;font-size:13px;line-height:1.25;padding:6px 10px;border-radius:8px;box-shadow:0 6px 18px rgba(0,0,0,.25);max-width:260px}
-.ptr svg{width:44px;height:44px;flex:0 0 auto;filter:drop-shadow(0 3px 6px rgba(0,0,0,.3))}
-.ptr.top svg,.ptr.bottom svg{width:40px;height:40px}
-@keyframes ptrIn{from{opacity:0;transform:translate(var(--dx,0),var(--dy,0)) scale(.9)}to{opacity:1;transform:translate(0,0) scale(1)}}
-@keyframes ptrBob{0%,100%{transform:translate(0,0)}50%{transform:translate(var(--bx,0),var(--by,0))}}
-.ptr-target{outline:3px solid var(--buzz) !important;outline-offset:3px;border-radius:6px;transition:outline-color .3s}
-@media (prefers-reduced-motion: reduce){.ptr{animation:ptrIn .3s ease-out forwards}}
-
-#ptrLayer{position:fixed;inset:0;pointer-events:none;z-index:45}
-.ptr{position:absolute;display:flex;align-items:center;gap:6px;opacity:0;transform:translate(0,0);animation:ptrIn .5s ease-out forwards, ptrBob 1.6s ease-in-out .5s infinite}
-.ptr.left{flex-direction:row}.ptr.right{flex-direction:row-reverse}.ptr.top{flex-direction:column}.ptr.bottom{flex-direction:column-reverse}
-.ptr .tag{background:var(--buzz);color:#1C2430;font-weight:700;font-size:13px;line-height:1.25;padding:6px 10px;border-radius:8px;box-shadow:0 6px 18px rgba(0,0,0,.25);max-width:260px}
-.ptr svg{width:44px;height:44px;flex:0 0 auto;filter:drop-shadow(0 3px 6px rgba(0,0,0,.3))}
-.ptr.top svg,.ptr.bottom svg{width:40px;height:40px}
-@keyframes ptrIn{from{opacity:0;transform:translate(var(--dx,0),var(--dy,0)) scale(.9)}to{opacity:1;transform:translate(0,0) scale(1)}}
-@keyframes ptrBob{0%,100%{transform:translate(0,0)}50%{transform:translate(var(--bx,0),var(--by,0))}}
-.ptr-target{outline:3px solid var(--buzz) !important;outline-offset:3px;border-radius:6px;transition:outline-color .3s}
-@media (prefers-reduced-motion: reduce){.ptr{animation:ptrIn .3s ease-out forwards}}
 
 .help{max-width:960px}
 .help h2{font-family:"Roboto Slab",serif;font-size:20px;margin:26px 0 8px;color:var(--navy);scroll-margin-top:16px}
@@ -1378,7 +1246,7 @@ const POINTERS = {
   }
 };
 
-const PTR = { timers: [], live: null, raf: 0, pending: [] };
+const PTR = { timers: [], live: null, raf: 0, pending: [], hideTimer: 0 };
 function ptrClear(){ PTR.timers.forEach(clearTimeout); PTR.timers = []; PTR.pending = []; ptrHide(); }
 function ptrHide(){ if (PTR.live){ PTR.live.node.remove(); if (PTR.live.el) PTR.live.el.classList.remove('ptr-target'); PTR.live = null; } cancelAnimationFrame(PTR.raf); }
 function ptrEnsureVisible(r){ const barH = bar.hidden ? 0 : bar.getBoundingClientRect().height; const visTop = 90, visBottom = innerHeight - barH - 30; if (r.top < visTop || r.bottom > visBottom){ const want = visTop + (visBottom - visTop) / 2; window.scrollTo({top: window.scrollY + (r.top + Math.min(r.height, visBottom - visTop) / 2) - want, behavior: 'auto'}); return true; } return false; }
@@ -1393,16 +1261,16 @@ function ptrShow(p){
   const bob = {left: ['8px','0'], right: ['-8px','0'], top: ['0','8px'], bottom: ['0','-8px']}[p.side]; node.style.setProperty('--bx', bob[0]); node.style.setProperty('--by', bob[1]); node.style.setProperty('--dx', bob[0]); node.style.setProperty('--dy', bob[1]);
   $('#ptrLayer').appendChild(node); if (el && el.classList && !(el instanceof HTMLCanvasElement)) el.classList.add('ptr-target');
   PTR.live = {node, p, el: (el && el.classList && !(el instanceof HTMLCanvasElement)) ? el : null};
-  let lastEnsure = performance.now(); const place = () => { if (!PTR.live || PTR.live.node !== node) return; const r = ptrResolve(p); if (!r){ ptrHide(); return; } const b = r.rect; { const barH0 = bar.hidden ? 0 : bar.getBoundingClientRect().height; if ((b.top < 90 || b.bottom > innerHeight - barH0 - 30) && performance.now() - lastEnsure > 700){ lastEnsure = performance.now(); ptrEnsureVisible(b); } } const nw = node.offsetWidth, nh = node.offsetHeight; let x, y;
+  let lastEnsure = performance.now(); let missingSince = 0; const place = () => { if (!PTR.live || PTR.live.node !== node) return; const r = ptrResolve(p); if (!r){ if (!missingSince) missingSince = performance.now(); if (performance.now() - missingSince > 2500){ ptrHide(); return; } PTR.raf = requestAnimationFrame(place); return; } missingSince = 0; const b = r.rect; { const barH0 = bar.hidden ? 0 : bar.getBoundingClientRect().height; if ((b.top < 90 || b.bottom > innerHeight - barH0 - 30) && performance.now() - lastEnsure > 700){ lastEnsure = performance.now(); ptrEnsureVisible(b); } } const nw = node.offsetWidth, nh = node.offsetHeight; let x, y;
     if (p.side === 'left'){ x = b.left - nw - 10; y = b.top + b.height/2 - nh/2; } else if (p.side === 'right'){ x = b.left + b.width + 10; y = b.top + b.height/2 - nh/2; } else if (p.side === 'top'){ x = b.left + b.width/2 - nw/2; y = b.top - nh - 8; } else { x = b.left + b.width/2 - nw/2; y = b.top + b.height + 8; }
     const barH2 = bar.hidden ? 0 : bar.getBoundingClientRect().height; x = Math.max(8, Math.min(innerWidth - nw - 8, x)); y = Math.max(8, Math.min(innerHeight - barH2 - nh - 8, y)); node.style.left = x + 'px'; node.style.top = y + 'px'; PTR.raf = requestAnimationFrame(place); };
   setTimeout(place, 420); setTimeout(() => { const r = ptrResolve(p); if (r) ptrEnsureVisible(r.rect); place(); }, 950); place();
 }
-function ptrSchedule(i){ ptrClear(); const list = (POINTERS[storyMode()] || POINTERS.full || {})[i] || []; if (!list.length) return;
+function ptrSchedule(i){ clearTimeout(PTR.hideTimer); ptrClear(); const list = (POINTERS[storyMode()] || POINTERS.full || {})[i] || []; if (!list.length) return;
   if (NAR.on && NAR_READY[storyMode()]){ PTR.pending = list.slice(); }  // fired from the audio clock in narPlay's timeupdate
   else { list.forEach(p => PTR.timers.push(setTimeout(() => ptrShow(p), 900 + p.t * 1000))); PTR.timers.push(setTimeout(ptrHide, 900 + (list[list.length-1].t + 12) * 1000)); } }
 function ptrTick(time){ while (PTR.pending.length && PTR.pending[0].t <= time){ ptrShow(PTR.pending.shift()); } }
-window.__dbe = { adminMock: (users, events) => { ADMIN = true; const b = $('#helpAdmin'); b.hidden = false; b.innerHTML = '<h2>Visitor activity</h2><div class="ctl"><span class="empty" id="admStatus"></span></div><div id="admBody"></div>'; renderAdminWith(users, events); }, ptrShow, ptrHide, POINTERS, storyGo: (i) => storyGo(i), ptrLive: () => PTR.live && PTR.live.p.text };
+window.__dbe = { get NAR(){ return NAR; }, get PTR(){ return PTR; }, adminMock: (users, events) => { ADMIN = true; const b = $('#helpAdmin'); b.hidden = false; b.innerHTML = '<h2>Visitor activity</h2><div class="ctl"><span class="empty" id="admStatus"></span></div><div id="admBody"></div>'; renderAdminWith(users, events); }, ptrShow, ptrHide, POINTERS, storyGo: (i) => storyGo(i), ptrLive: () => PTR.live && PTR.live.p.text };
 // ---------- end pointers ----------
 
 
@@ -1458,7 +1326,7 @@ async function narUrl(i){ const name = `narration/${NAR_VER[storyMode()]}/step${
   NAR.urls[name] = url; return url; }
 function narEl(){ if (NAR.el) return NAR.el; const a = new Audio(); a.preload = 'auto'; NAR.el = a;
   a.addEventListener('timeupdate', () => { if (NAR.audio !== a) return; if (a.duration) $('#narFill').style.width = (a.currentTime / a.duration * 100).toFixed(1) + '%'; ptrTick(a.currentTime); });
-  a.addEventListener('ended', () => { if (NAR.audio !== a) return; $('#narPlay').textContent = '▶'; setTimeout(ptrHide, 6000); if (story.i === NAR.step) nextFlash(true); });
+  a.addEventListener('ended', () => { if (NAR.audio !== a) return; $('#narPlay').textContent = '▶'; clearTimeout(PTR.hideTimer); PTR.hideTimer = setTimeout(ptrHide, 6000); if (story.i === NAR.step) nextFlash(true); });
   a.addEventListener('play', () => { if (NAR.audio === a) $('#narPlay').textContent = '❚❚'; }); a.addEventListener('pause', () => { if (NAR.audio === a) $('#narPlay').textContent = '▶'; });
   return a; }
 // Safari/iOS only start sound inside a click. Called synchronously from the click handlers (before any await): plays a
