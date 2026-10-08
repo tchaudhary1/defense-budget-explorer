@@ -1095,19 +1095,28 @@ function nextFlash(on){ const b = $('#storyNext'); clearTimeout(flashTimer); if 
 
 
 // ---------- narration (optional audio for each story step) ----------
-const NAR = { on: false, audio: null, step: -1, urls: {}, available: null };
+const NAR = { on: false, audio: null, el: null, unlocked: false, step: -1, urls: {}, available: null };
+const NAR_SILENT = 'data:audio/wav;base64,UklGRrQBAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YZABAACAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICA';
 try { NAR.on = localStorage.getItem('dbe-narration') === 'on'; } catch(e){}
 const NAR_VER = 'v3';  // bump when clips are re-recorded; the path change defeats cached copies
 async function narUrl(i){ const name = `narration/${NAR_VER}/step${i}.mp3`; if (NAR.urls[name]) return NAR.urls[name]; let url = name;
   if (HOSTED){ const sb = await sbClient(); const { data, error } = await sb.storage.from(CFG.BUCKET || 'data').download(name); if (error) throw new Error(error.message); url = URL.createObjectURL(data); }
   NAR.urls[name] = url; return url; }
-function narStop(){ if (NAR.audio){ NAR.audio.pause(); NAR.audio.src = ''; NAR.audio = null; } $('#narPlay').textContent = '▶'; $('#narFill').style.width = '0'; }
-async function narPlay(i){ narStop(); if (!NAR.on) return; NAR.step = i;
-  try { const url = await narUrl(i); if (NAR.step !== i || !NAR.on) return; const a = new Audio(url); NAR.audio = a; a.addEventListener('timeupdate', () => { if (a.duration) $('#narFill').style.width = (a.currentTime / a.duration * 100).toFixed(1) + '%'; ptrTick(a.currentTime); }); a.addEventListener('ended', () => { $('#narPlay').textContent = '▶'; setTimeout(ptrHide, 6000); if (story.i === i) nextFlash(true); }); a.addEventListener('play', () => { $('#narPlay').textContent = '❚❚'; }); a.addEventListener('pause', () => { $('#narPlay').textContent = '▶'; }); await a.play(); narUrl(i + 1).catch(() => {}); }
-  catch (e) { toast('Narration for this step is not available.'); } }
+function narEl(){ if (NAR.el) return NAR.el; const a = new Audio(); a.preload = 'auto'; NAR.el = a;
+  a.addEventListener('timeupdate', () => { if (NAR.audio !== a) return; if (a.duration) $('#narFill').style.width = (a.currentTime / a.duration * 100).toFixed(1) + '%'; ptrTick(a.currentTime); });
+  a.addEventListener('ended', () => { if (NAR.audio !== a) return; $('#narPlay').textContent = '▶'; setTimeout(ptrHide, 6000); if (story.i === NAR.step) nextFlash(true); });
+  a.addEventListener('play', () => { if (NAR.audio === a) $('#narPlay').textContent = '❚❚'; }); a.addEventListener('pause', () => { if (NAR.audio === a) $('#narPlay').textContent = '▶'; });
+  return a; }
+// Safari/iOS only start sound inside a click. Called synchronously from the click handlers (before any await): plays a
+// silent clip once so the element counts as user-started; later programmatic play() calls on it are then allowed.
+function narUnlock(){ if (NAR.unlocked) return; const a = narEl(); try { a.src = NAR_SILENT; const pr = a.play(); if (pr && pr.catch) pr.catch(() => {}); NAR.unlocked = true; } catch(e){} }
+function narStop(){ if (NAR.audio){ const a = NAR.audio; NAR.audio = null; a.pause(); } $('#narPlay').textContent = '▶'; $('#narFill').style.width = '0'; }
+async function narPlay(i){ narStop(); if (!NAR.on) return; NAR.step = i; const a = narEl(); narUnlock();
+  try { const url = await narUrl(i); if (NAR.step !== i || !NAR.on) return; a.src = url; NAR.audio = a; await a.play(); narUrl(i + 1).catch(() => {}); }
+  catch (e) { if (NAR.step === i) toast('Narration for this step could not start. Press ▶ in the story bar to play it.'); } }
 function narUi(){ const t = $('#narToggle'); t.setAttribute('aria-pressed', NAR.on ? 'true' : 'false'); t.textContent = NAR.on ? '🔊 Narration on' : '🔇 Narration off'; $('#narPlay').hidden = !NAR.on; $('#narBar').hidden = !NAR.on; }
-$('#narToggle').addEventListener('click', () => { NAR.on = !NAR.on; try { localStorage.setItem('dbe-narration', NAR.on ? 'on' : 'off'); } catch(e){} narUi(); if (story.i >= 0){ ptrSchedule(story.i); if (NAR.on) narPlay(story.i); else narStop(); } });
-$('#narPlay').addEventListener('click', () => { if (NAR.audio){ if (NAR.audio.paused) NAR.audio.play(); else NAR.audio.pause(); } else if (story.i >= 0) narPlay(story.i); });
+$('#narToggle').addEventListener('click', () => { NAR.on = !NAR.on; if (NAR.on) narUnlock(); try { localStorage.setItem('dbe-narration', NAR.on ? 'on' : 'off'); } catch(e){} narUi(); if (story.i >= 0){ ptrSchedule(story.i); if (NAR.on) narPlay(story.i); else narStop(); } });
+$('#narPlay').addEventListener('click', () => { narUnlock(); if (NAR.audio){ if (NAR.audio.paused) NAR.audio.play(); else NAR.audio.pause(); } else if (story.i >= 0) narPlay(story.i); });
 narUi();
 
 const bar = $('#storybar');
