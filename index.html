@@ -331,7 +331,10 @@ body.story-on main{padding-bottom:230px}
 #helpAdmin .cols h4{margin:0 0 4px;font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
 #helpAdmin .bar{display:inline-block;height:8px;background:var(--s1);border-radius:2px;vertical-align:middle;margin-right:6px}
 #helpAdmin .tl{font-size:12px;max-height:320px;overflow:auto;border:1px solid var(--rule);border-radius:6px}
-#helpAdmin .tl div{display:grid;grid-template-columns:118px 92px 1fr;gap:8px;padding:3px 8px;border-bottom:1px solid var(--rule)}
+#helpAdmin .tl div{display:grid;grid-template-columns:120px 150px 1fr;gap:10px;padding:3px 8px;border-bottom:1px solid var(--rule)}
+#helpAdmin .cols{grid-template-columns:repeat(auto-fit,minmax(300px,1fr))}
+#helpAdmin .recent{margin-top:12px}
+@media (max-width:640px){#helpAdmin .tl div{grid-template-columns:100px 1fr}#helpAdmin .tl .k{display:none}}
 #helpAdmin .tl div:last-child{border-bottom:0}
 #helpAdmin .tl .t{color:var(--muted);font-variant-numeric:tabular-nums}
 #helpAdmin .tl .k{color:var(--ink-2)}
@@ -1274,7 +1277,7 @@ function renderAdminWith(users, events){ const body = $('#admBody'); const statu
     const line = r => { const d = r.detail || {}; switch (r.kind){ case 'visit': return `opened the page (${d.w}×${d.h})`; case 'click': return `${d.kind}: ${esc(d.what || d.id || '')}`; case 'search': return `searched "${esc(d.q)}"`; case 'story': return d.step < 0 ? `left the story at step ${d.from}` : `story step ${d.step}${d.title ? ' · ' + esc(d.title) : ''}`; default: return esc(r.kind); } };
     const tlHtml = recent.length ? `<div class="tl">${recent.map(r => `<div><span class="t">${fmtWhen(r.at)}</span><span class="k">${esc(TAB_NAME[(r.detail || {}).tab] || '')}</span><span>${line(r)}</span></div>`).join('')}</div>` : '<div class="empty">No clicks recorded yet.</div>';
     parts.push(`<div class="user"><h3>${esc(shortUser(u.email))}</h3><div class="facts">${facts.map(f => `<span>${f}</span>`).join('')}</div>
-      <div class="cols"><div><h4>Time by tab</h4>${tabHtml}</div><div><h4>Sessions</h4>${sessHtml}</div><div><h4>Recent activity</h4>${tlHtml}${searches.length ? `<div class="sub" style="margin-top:6px">Searches: ${searches.slice(-12).map(r => '"' + esc(r.detail.q) + '"').join(', ')}</div>` : ''}</div></div></div>`); }
+      <div class="cols"><div><h4>Time by tab</h4>${tabHtml}</div><div><h4>Sessions</h4>${sessHtml}</div></div><div class="recent"><h4>Recent activity (newest first)</h4>${tlHtml}${searches.length ? `<div class="sub" style="margin-top:6px">Searches: ${searches.slice(-12).map(r => '"' + esc(r.detail.q) + '"').join(', ')}</div>` : ''}</div></div>`); }
   body.innerHTML = parts.join(''); }
 
 RENDER.help = async () => { renderAdmin(); await renderHelp(); };
