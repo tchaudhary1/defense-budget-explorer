@@ -539,7 +539,7 @@ const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 // ---------- theme ----------
 const themeBtn = $('#themeToggle');
 themeBtn.addEventListener('click', () => { const cur = document.documentElement.getAttribute('data-theme'); const dark = cur ? cur === 'dark' : matchMedia('(prefers-color-scheme: dark)').matches; document.documentElement.setAttribute('data-theme', dark ? 'light' : 'dark'); try { localStorage.setItem('dbe-theme', dark ? 'light' : 'dark'); } catch(e){} rerenderAll(); });
-try { const t = localStorage.getItem('dbe-theme'); if (t) document.documentElement.setAttribute('data-theme', t); } catch(e){}
+{ let t = null; try { t = localStorage.getItem('dbe-theme'); } catch(e){} document.documentElement.setAttribute('data-theme', t || 'light'); }  // light by default; the Theme button remembers a choice per device
 matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => rerenderAll());
 
 // ---------- data load ----------
@@ -1144,7 +1144,7 @@ document.addEventListener('keydown', e => { if (story.i < 0) return; if (e.key =
 // ---------- start ----------
 const h = (location.hash || '').replace('#','');
 const sm = h.match(/^story(\d+)$/);
-if (sm && +sm[1] >= 0 && +sm[1] < STORY.length){ showTab('overview'); storyGo(+sm[1]); } else showTab(RENDER[h] ? h : 'overview');
+if (sm){ showTab('overview'); try { history.replaceState(null, '', location.pathname); } catch(e){} } else showTab(RENDER[h] ? h : 'overview');  // the story never starts by itself; use the Play button
 window.addEventListener('hashchange', () => { const t = (location.hash || '').replace('#',''); if (RENDER[t] && t !== activeTab) showTab(t); });
 })().catch(e => { const l = document.querySelector('#loading'); const msg = '<div class="empty">Something went wrong while building the page: ' + (e && e.message ? e.message : e) + '</div>'; if (l) l.innerHTML = msg; else document.querySelector('main').insertAdjacentHTML('afterbegin', msg); console.error(e); });
 </script>
