@@ -274,6 +274,28 @@ body.story-on main{padding-bottom:230px}
 @keyframes ptrBob{0%,100%{transform:translate(0,0)}50%{transform:translate(var(--bx,0),var(--by,0))}}
 .ptr-target{outline:3px solid var(--buzz) !important;outline-offset:3px;border-radius:6px;transition:outline-color .3s}
 @media (prefers-reduced-motion: reduce){.ptr{animation:ptrIn .3s ease-out forwards}}
+
+#ptrLayer{position:fixed;inset:0;pointer-events:none;z-index:45}
+.ptr{position:absolute;display:flex;align-items:center;gap:6px;opacity:0;transform:translate(0,0);animation:ptrIn .5s ease-out forwards, ptrBob 1.6s ease-in-out .5s infinite}
+.ptr.left{flex-direction:row}.ptr.right{flex-direction:row-reverse}.ptr.top{flex-direction:column}.ptr.bottom{flex-direction:column-reverse}
+.ptr .tag{background:var(--buzz);color:#1C2430;font-weight:700;font-size:13px;line-height:1.25;padding:6px 10px;border-radius:8px;box-shadow:0 6px 18px rgba(0,0,0,.25);max-width:260px}
+.ptr svg{width:44px;height:44px;flex:0 0 auto;filter:drop-shadow(0 3px 6px rgba(0,0,0,.3))}
+.ptr.top svg,.ptr.bottom svg{width:40px;height:40px}
+@keyframes ptrIn{from{opacity:0;transform:translate(var(--dx,0),var(--dy,0)) scale(.9)}to{opacity:1;transform:translate(0,0) scale(1)}}
+@keyframes ptrBob{0%,100%{transform:translate(0,0)}50%{transform:translate(var(--bx,0),var(--by,0))}}
+.ptr-target{outline:3px solid var(--buzz) !important;outline-offset:3px;border-radius:6px;transition:outline-color .3s}
+@media (prefers-reduced-motion: reduce){.ptr{animation:ptrIn .3s ease-out forwards}}
+
+#ptrLayer{position:fixed;inset:0;pointer-events:none;z-index:45}
+.ptr{position:absolute;display:flex;align-items:center;gap:6px;opacity:0;transform:translate(0,0);animation:ptrIn .5s ease-out forwards, ptrBob 1.6s ease-in-out .5s infinite}
+.ptr.left{flex-direction:row}.ptr.right{flex-direction:row-reverse}.ptr.top{flex-direction:column}.ptr.bottom{flex-direction:column-reverse}
+.ptr .tag{background:var(--buzz);color:#1C2430;font-weight:700;font-size:13px;line-height:1.25;padding:6px 10px;border-radius:8px;box-shadow:0 6px 18px rgba(0,0,0,.25);max-width:260px}
+.ptr svg{width:44px;height:44px;flex:0 0 auto;filter:drop-shadow(0 3px 6px rgba(0,0,0,.3))}
+.ptr.top svg,.ptr.bottom svg{width:40px;height:40px}
+@keyframes ptrIn{from{opacity:0;transform:translate(var(--dx,0),var(--dy,0)) scale(.9)}to{opacity:1;transform:translate(0,0) scale(1)}}
+@keyframes ptrBob{0%,100%{transform:translate(0,0)}50%{transform:translate(var(--bx,0),var(--by,0))}}
+.ptr-target{outline:3px solid var(--buzz) !important;outline-offset:3px;border-radius:6px;transition:outline-color .3s}
+@media (prefers-reduced-motion: reduce){.ptr{animation:ptrIn .3s ease-out forwards}}
 footer{border-top:1px solid var(--rule);color:var(--muted);font-size:12px;padding:16px 0 28px}
 kbd.code{font-family:ui-monospace,Consolas,monospace;font-size:12px;background:var(--surface-2);padding:1px 5px;border-radius:4px}
 .themebtn{border:1px solid rgba(255,255,255,.35);background:transparent;color:#fff;border-radius:6px;padding:4px 10px;cursor:pointer;font-size:12px;margin-left:10px}
@@ -997,8 +1019,8 @@ const POINTERS = {
   1: [{t:0.1, target: () => sel('#chOvOmb'), text: "Each stripe is one kind of spending", side: "top"}, {t:9.5, target: () => chartX('chOvOmb', 2027, 1), text: "Grey = estimates", side: "right"}, {t:13.0, target: () => chartX('chOvOmb', 2027, 1), text: "FY2027", side: "left"}, {t:20.0, target: () => sel('#chOvTitle'), text: "Research & development is the stripe that jumps", side: "top"}],
   2: [{t:12.0, target: () => sel('#exCrumbs'), text: "The drawers we opened", side: "top"}, {t:21.7, target: () => sel('#exTable tbody tr:first-child'), text: "One line, $54.6 billion", side: "right"}, {t:31.9, target: () => sel('#exBarTitle'), text: "Compare: all Army research is $18.3B", side: "top"}, {t:42.9, target: () => sel('#exTable tbody tr:first-child td.name'), text: "A title and a number", side: "right"}],
   3: [{t:3.3, target: () => sel('#sQ'), text: "Searching for \u201cunmanned\u201d", side: "top"}, {t:8.0, target: () => sel('#sTblSub'), text: "72 lines, six owners", side: "right"}, {t:12.6, target: () => sel('#chSearch'), text: "Attack drones and counter-drone defenses, mixed together", side: "top"}, {t:21.6, target: () => sel('#sTable'), text: "Five spellings, four owners", side: "top"}],
-  4: [{t:23.9, target: () => sel('#txTiles'), text: "Five questions, one label each", side: "top"}, {t:59.8, target: () => sel('#chTxBar'), text: "Sorted by technology named", side: "top"}, {t:68.7, target: () => barByLabel('chTxBar', 'Artificial intelligence'), text: "$59 billion in FY2027", side: "right"}, {t:72.2, target: () => sel('#txLines tbody tr:first-child'), text: "93% is this one line", side: "right"}, {t:75.7, target: () => sel('#txLines tbody tr:first-child td:nth-child(6)'), text: "Not determinable, not determinable, mixed, not determinable", side: "left"}, {t:96.8, target: () => sel('#txLines tbody tr:first-child td:nth-child(6)'), text: "The refusal is the finding", side: "left"}],
-  5: [{t:0, target: () => sel('#txXtab'), text: "Rows: what problem \u00b7 Columns: where", side: "top"}, {t:12.1, target: () => rowOf('#txXtab', 'Air and missile defense'), text: "Air and missile defense", side: "left"}, {t:17.3, target: () => sel('#txTrendRow1'), text: "$15.7B in FY2024 \u2192 $39.6B in FY2027", side: "top"}, {t:26.3, target: () => sel('#txTrendRow2'), text: "Space-based: $4.5B \u2192 $11B to $15B", side: "bottom"}, {t:35.2, target: () => sel('#txLines'), text: "Golden Dome: nine lines, nine owners", side: "top"}],
+  4: [{t:0, target: () => sel('#txIntro'), text: "The Taxonomy tab: the heart of the Pursestrings approach", side: "bottom"}, {t:28.1, target: () => sel('#txTiles'), text: "Five questions, one label each", side: "top"}, {t:65.3, target: () => sel('#chTxBar'), text: "Sorted by technology named", side: "top"}, {t:73.6, target: () => barByLabel('chTxBar', 'Artificial intelligence'), text: "$59 billion in FY2027", side: "right"}, {t:77.1, target: () => sel('#txLines tbody tr:first-child'), text: "93% is this one line", side: "right"}, {t:80.6, target: () => sel('#txLines tbody tr:first-child td:nth-child(6)'), text: "Not determinable, not determinable, mixed, not determinable", side: "left"}, {t:99.7, target: () => sel('#txLines tbody tr:first-child td:nth-child(6)'), text: "The refusal is the finding", side: "left"}],
+  5: [{t:0.0, target: () => sel('#txXtab'), text: "Rows: what problem \u00b7 Columns: where", side: "top"}, {t:11.9, target: () => rowOf('#txXtab', 'Air and missile defense'), text: "Air and missile defense", side: "left"}, {t:17.1, target: () => sel('#txTrendRow1'), text: "$15.7B in FY2024 \u2192 $39.6B in FY2027", side: "top"}, {t:25.9, target: () => sel('#txTrendRow2'), text: "Space-based: $4.5B \u2192 $11B to $15B", side: "bottom"}, {t:36.2, target: () => sel('#txLines'), text: "Golden Dome: nine lines, nine owners", side: "top"}],
   6: [{t:1.2, target: () => sel('#vTiles'), text: "Request \u00b7 Enacted \u00b7 Actual", side: "top"}, {t:13.6, target: () => sel('#vTiles .tile:nth-child(2)'), text: "\u201cEnacted\u201d for FY2024", side: "right"}, {t:31.5, target: () => sel('#vTiles .tile:nth-child(2) .s'), text: "A $5.3B gap that is a stopgap artifact", side: "right"}, {t:41.5, target: () => sel('#vFy'), text: "Try FY2023 or FY2025", side: "right"}],
   7: [{t:0.3, target: () => sel('#txBarTitle'), text: "Life-stage labels", side: "top"}, {t:9.3, target: () => sel('#txXtab thead'), text: "Columns: who owns the line", side: "top"}, {t:12.9, target: () => rowOf('#txXtab', 'Not determinable'), text: "\u201cThe title does not say\u201d: $150B", side: "left"}, {t:25.6, target: () => cellOf('#txXtab', 'Not determinable', 'OSD'), text: "OSD: 55% of its request", side: "top"}, {t:35.4, target: () => cellOf('#txXtab', 'Not determinable', 'Air Force'), text: "Click a cell for the lines behind it", side: "right"}],
   8: [{t:3.0, target: () => sel('#chExec'), text: "Available \u00b7 Committed \u00b7 Paid", side: "top"}, {t:9.4, target: () => sel('#chExecRate'), text: "About half committed within the year", side: "top"}, {t:22.2, target: () => sel('#panel-exec .note'), text: "The same five questions, next applied to hearings and reports", side: "top"}]
@@ -1050,6 +1072,12 @@ window.__dbe = { ptrShow, ptrHide, POINTERS, storyGo: (i) => storyGo(i), ptrLive
 
 
 
+
+
+
+
+
+
 let flashTimer = null;
 function nextFlash(on){ const b = $('#storyNext'); clearTimeout(flashTimer); if (on){ b.classList.add('flash'); b.title = 'The narration for this step has finished. Click when you are ready to continue.'; } else { b.classList.remove('flash'); b.title = ''; } }
 
@@ -1069,7 +1097,7 @@ function nextFlash(on){ const b = $('#storyNext'); clearTimeout(flashTimer); if 
 // ---------- narration (optional audio for each story step) ----------
 const NAR = { on: false, audio: null, step: -1, urls: {}, available: null };
 try { NAR.on = localStorage.getItem('dbe-narration') === 'on'; } catch(e){}
-const NAR_VER = 'v2';  // bump when clips are re-recorded; the path change defeats cached copies
+const NAR_VER = 'v3';  // bump when clips are re-recorded; the path change defeats cached copies
 async function narUrl(i){ const name = `narration/${NAR_VER}/step${i}.mp3`; if (NAR.urls[name]) return NAR.urls[name]; let url = name;
   if (HOSTED){ const sb = await sbClient(); const { data, error } = await sb.storage.from(CFG.BUCKET || 'data').download(name); if (error) throw new Error(error.message); url = URL.createObjectURL(data); }
   NAR.urls[name] = url; return url; }
@@ -1092,6 +1120,8 @@ function storyGo(i){
   setTimeout(() => ptrSchedule(i), st.tab === 'taxonomy' ? 1100 : 500);
   setTimeout(() => ptrSchedule(i), st.tab === 'taxonomy' ? 1100 : 500);
   nextFlash(false);
+  setTimeout(() => ptrSchedule(i), st.tab === 'taxonomy' ? 1100 : 500);
+  setTimeout(() => ptrSchedule(i), st.tab === 'taxonomy' ? 1100 : 500);
   setTimeout(() => ptrSchedule(i), st.tab === 'taxonomy' ? 1100 : 500);
   setTimeout(() => ptrSchedule(i), st.tab === 'taxonomy' ? 1100 : 500);
   setTimeout(() => ptrSchedule(i), st.tab === 'taxonomy' ? 1100 : 500);
