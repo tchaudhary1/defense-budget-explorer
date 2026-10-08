@@ -27,3 +27,7 @@ The pipeline (download, parse, normalize, taxonomy assembly) lives in the resear
 ## Visitor activity (admin)
 
 Signed-in visitors' tab time, clicks, searches and story steps are written to the Supabase table `dbe_events`. Create it once by running `tools/admin-activity.sql` in the project's SQL editor. The account named in `config.js` `ADMIN_EMAIL` sees a *Visitor activity* panel at the top of the Help tab; the table's row-level policy and the `dbe_admin_users()` function enforce the same restriction server side.
+
+## Demo accounts
+
+`tools/user.mjs` creates, disables, re-enables, rotates or deletes username accounts (`name@users.dbe.invalid`) with the service key in the environment: `node tools/user.mjs create|disable|enable|rotate|delete <username>`. New and rotated passwords are written to `~/.dbe_pw_<username>` (never printed). A shared account can be used by many people at once; disable or rotate it after an event.
