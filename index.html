@@ -229,7 +229,7 @@ kbd.code{font-family:ui-monospace,Consolas,monospace;font-size:12px;background:v
   <h2 id="gateTitle">Sign in to the Defense Budget Explorer</h2>
   <p id="gateText">This demonstration is shared by invitation. Sign in with the account you were given.</p>
   <form id="gateForm" autocomplete="on">
-    <div id="gateEmailWrap"><label for="gateEmail">Email</label><input id="gateEmail" type="email" name="email" autocomplete="username" required></div>
+    <div id="gateEmailWrap"><label for="gateEmail">Username or email</label><input id="gateEmail" type="text" name="username" autocomplete="username" required spellcheck="false" autocapitalize="off"></div>
     <div id="gatePassWrap"><label for="gatePass" id="gatePassLabel">Password</label><input id="gatePass" type="password" name="password" autocomplete="current-password" required minlength="8"></div>
     <div class="err" id="gateErr"></div><div class="ok" id="gateOk"></div>
     <div class="row"><button type="submit" class="primary" id="gateSubmit">Sign in</button><button type="button" class="link" id="gateForgot">Forgot password?</button></div>
@@ -451,8 +451,8 @@ const HOSTED = !!(CFG && CFG.SUPABASE_URL && CFG.SUPABASE_ANON_KEY);
 let SB = null;
 async function sbClient(){ if (SB) return SB; const { createClient } = await import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm'); SB = createClient(CFG.SUPABASE_URL, CFG.SUPABASE_ANON_KEY, { auth: { persistSession: true, detectSessionInUrl: true, flowType: 'implicit' } }); return SB; }
 function gateMode(mode){ const f = $('#gateForm'); const t = $('#gateTitle'), x = $('#gateText'), em = $('#gateEmailWrap'), pw = $('#gatePassWrap'), lbl = $('#gatePassLabel'), sub = $('#gateSubmit'), fg = $('#gateForgot'); $('#gateErr').textContent = ''; $('#gateOk').textContent = ''; f.dataset.mode = mode;
-  if (mode === 'signin'){ t.textContent = 'Sign in to the Defense Budget Explorer'; x.textContent = 'This demonstration is shared by invitation. Sign in with the account you were given.'; em.hidden = false; pw.hidden = false; lbl.textContent = 'Password'; $('#gatePass').autocomplete = 'current-password'; sub.textContent = 'Sign in'; fg.hidden = false; fg.textContent = 'Forgot password?'; }
-  if (mode === 'forgot'){ t.textContent = 'Reset your password'; x.textContent = 'Enter the account email and we will send a link that lets you choose a new password.'; em.hidden = false; pw.hidden = true; sub.textContent = 'Send reset link'; fg.hidden = false; fg.textContent = 'Back to sign in'; }
+  if (mode === 'signin'){ t.textContent = 'Sign in to the Defense Budget Explorer'; x.textContent = 'This demonstration is shared by invitation. Sign in with the username or email you were given.'; em.hidden = false; pw.hidden = false; lbl.textContent = 'Password'; $('#gatePass').autocomplete = 'current-password'; sub.textContent = 'Sign in'; fg.hidden = false; fg.textContent = 'Forgot password?'; }
+  if (mode === 'forgot'){ t.textContent = 'Reset your password'; x.textContent = 'Enter the account email and we will send a link that lets you choose a new password. Username-only accounts have no mailbox; ask the person who gave you access to reset it.'; em.hidden = false; pw.hidden = true; sub.textContent = 'Send reset link'; fg.hidden = false; fg.textContent = 'Back to sign in'; }
   if (mode === 'setpw'){ t.textContent = 'Choose a password'; x.textContent = 'You are signed in through an email link. Set a password (at least 8 characters) to use from now on.'; em.hidden = true; pw.hidden = false; lbl.textContent = 'New password'; $('#gatePass').autocomplete = 'new-password'; sub.textContent = 'Save password'; fg.hidden = true; } }
 function showGate(mode){ $('#gate').hidden = false; gateMode(mode); setTimeout(() => (mode === 'setpw' ? $('#gatePass') : $('#gateEmail')).focus(), 50); }
 function hideGate(){ $('#gate').hidden = true; }
@@ -466,12 +466,12 @@ async function requireSession(){
   else if (!session){ showGate('signin'); await waitForGate(sb); }
   ({ data: { session } } = await sb.auth.getSession());
   hideGate(); if (fromLink) { try { history.replaceState(null, '', location.pathname); } catch(e){} }
-  $('#acct').hidden = false; $('#acctEmail').textContent = session?.user?.email || '';
+  $('#acct').hidden = false; { const e = session?.user?.email || ''; $('#acctEmail').textContent = e.endsWith('@' + (CFG.USER_DOMAIN || 'users.dbe.invalid')) ? e.split('@')[0] : e; }
   return sb;
 }
 function waitForGate(sb){ return new Promise(resolve => {
   const f = $('#gateForm'); const err = $('#gateErr'), ok = $('#gateOk');
-  const onSubmit = async (e) => { e.preventDefault(); err.textContent = ''; ok.textContent = ''; const mode = f.dataset.mode; const email = $('#gateEmail').value.trim(), pass = $('#gatePass').value; $('#gateSubmit').disabled = true;
+  const onSubmit = async (e) => { e.preventDefault(); err.textContent = ''; ok.textContent = ''; const mode = f.dataset.mode; let email = $('#gateEmail').value.trim().toLowerCase(); if (email && !email.includes('@')) email = email + '@' + (CFG.USER_DOMAIN || 'users.dbe.invalid'); const pass = $('#gatePass').value; $('#gateSubmit').disabled = true;
     try {
       if (mode === 'signin'){ const { error } = await sb.auth.signInWithPassword({ email, password: pass }); if (error) throw error; cleanup(); resolve(); }
       else if (mode === 'forgot'){ const { error } = await sb.auth.resetPasswordForEmail(email, { redirectTo: location.origin + location.pathname }); if (error) throw error; ok.textContent = 'If that address has an account, a reset link is on its way.'; }

@@ -4,4 +4,5 @@ window.DBE = {
   SUPABASE_URL: 'https://aizytqcqzgtlghvayyle.supabase.co',
   SUPABASE_ANON_KEY: 'sb_publishable_Qakufm85rqeAd2sOf17Tdg_umEY0Iqi',
   BUCKET: 'data',
+  USER_DOMAIN: 'users.dbe.invalid',  // bare usernames at sign-in become name@this-domain (no mailbox; .invalid never resolves)
 };
