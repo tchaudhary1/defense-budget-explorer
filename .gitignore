@@ -10,3 +10,6 @@ critique_v1.txt
 taxonomy_v1_notes.txt
 taxonomy_v2_changelog.txt
 classifier_brief.txt
+
+# Claude Code settings
+.claude/
